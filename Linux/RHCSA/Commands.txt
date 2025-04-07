@@ -15,4 +15,35 @@ usermod -d "/home/newknox" -m knox
 gpasswd -d user group
 groupmod -n oldgroupname newgroupname
 lid -g groupname	#Display group's user
+##############################################
+top:
+	us: user processes percents
+	sy: kernel procecess percents
+	ni: is the percent of time spent running processes with manually configured nice values.
+	id: is the percent of time idle (if low, CPU may be overworked).
+	wa: is the percent of wait time (if high, CPU is waiting for I/O access).
+	hi: is the percent of time managing hardware interrupts.
+	si: is the percent of time managing software interrupts.
+	st: is the percent of virtual CPU time waiting for access to physical CPU.
 
+Process List
+	PID. The process ID.
+	USER. The user account that started the process.
+	PR. Process priority.
+	NI. Nice value, affecting scheduling priority.
+	VIRT. Total virtual memory the process uses.
+	RES. Resident memory (actual physical memory in use).
+	SHR. Shared memory used by the process.
+	S. Process state (e.g., S for sleeping, R for running).
+	%CPU. Percentage of CPU time used by the process.
+	%MEM. Percentage of RAM used by the process.
+	TIME+. Total CPU time the process has consumed.
+	COMMAND. The program, service, or command responsible for each active process.
+
+############################################
+Send Foreground Process to Background
+1. Ctrl + Z
+2. bg
+3. disown -h %<jobnumber>
+4. ps aux | grep <process>
+############################################
