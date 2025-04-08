@@ -47,3 +47,41 @@ Send Foreground Process to Background
 3. disown -h %<jobnumber>
 4. ps aux | grep <process>
 ############################################
+Scheduling with systemd:
+/etc/systemd/system/
+touch 2 files:
+	clockfile.timer
+	clockfile.service
+Sample:
+Step 1:
+vim clockfile.service
+************************************************
+[Unit]
+Description=This is a little test of a clockfile.
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'echo $(date) >> /home/cent/clock.txt'
+User=cent
+************************************************
+Step 2:
+vim clockfile.timer
+************************************************
+[Unit]
+Description=This is the timer for the clockfile service.
+
+[Timer]
+OnBootSec=3min
+OnCalendar=*-*-* *:*:0
+
+[Install]
+WantedBy=graphical.target
+************************************************
+Step 3:
+test the syntax
+systemd-analyze calendar *-*-* *:*:0
+
+Step 4:
+systemctl daemon-reload
+systemctl start clockfile.timer
+-------------------------------------------------------------------
