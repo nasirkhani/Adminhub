@@ -85,3 +85,14 @@ Step 4:
 systemctl daemon-reload
 systemctl start clockfile.timer
 -------------------------------------------------------------------
+rhel -> grub2-mkconfig -o /boot/grub2/grub.cfg
+deb -> update-grub
+-------------------------------------------------------------------
+systemctl get-default
+systemctl isolate <target>
+systemctl set-default <multi-user.target>
+targets -> /etc/systemd/system/
+			/usr/lib/systemd/system/
+systemctl list-dependencies
+
+			
