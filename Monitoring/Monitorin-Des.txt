@@ -156,3 +156,8 @@ Scalability: Use Kubernetes to auto-scale stateless services (e.g., Flink worker
 Latency: Deploy processing nodes close to transaction switches (e.g., edge servers in regional data centers).
 
 Compliance: Schedule regular audits of access logs and PAN masking workflows.
+
+
+
+
+
