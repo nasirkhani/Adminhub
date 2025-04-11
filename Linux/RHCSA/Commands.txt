@@ -94,5 +94,10 @@ systemctl set-default <multi-user.target>
 targets -> /etc/systemd/system/
 			/usr/lib/systemd/system/
 systemctl list-dependencies
+************************************************
+ssh-keygen -t rsa --> -t means type
+************************************************
+NFS
+rpm: nfs-utils
 
 			
