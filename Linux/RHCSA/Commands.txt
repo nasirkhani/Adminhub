@@ -98,6 +98,41 @@ systemctl list-dependencies
 ssh-keygen -t rsa --> -t means type
 ************************************************
 NFS
+Configuring nfs server:
 rpm: nfs-utils
+vim /etc/exports
+/var/networkshare       192.168.23.0/24(rw,sync,no_root_squash)
+chmod 777 /var/networkshare
+sudo systemctl start nfs-server
+sudo exportfs -r
+sudo exportfs
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --reload
+-------------------------------------------------------------------
+Configuring nfs clients:
+dnf install nfs-utils
+cd /mnt
+mkdir networkshare
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --reload
+mount 192.168.23.128:/var/networkshare /mnt/networkshare/
+vim /etc/fstab
+192.168.23.128:/var/networkshare        /mnt/networkshare       nfs     defaults        0 0
+-------------------------------------------------------------------
+autofs:
+dnf install autofs
+vim /etc/auto.master
+	under /misc
+	/networkshare	/etc/auto.networkshare
+vim /etc/auto.networkshare
+	sharedate	-rw		192.168.23.128:/var/networkshare
+systemctl start autofs
+************************************************
+
+
 
 			
