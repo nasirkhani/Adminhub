@@ -132,7 +132,10 @@ vim /etc/auto.networkshare
 	sharedate	-rw		192.168.23.128:/var/networkshare
 systemctl start autofs
 ************************************************
+Selinux:
 
-
-
-			
+ls -Z
+user:role:type:level
+ps -eZ
+semanage port -a -t ssh_port_t -p tcp #PORTNUMBER
+semanage boolean -l -C
