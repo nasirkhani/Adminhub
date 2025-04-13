@@ -6,7 +6,9 @@ zip		, unzip
 tar
 star
 cpio	, 
+rpm2cpio tree-2.2.1-1.3.x86_64.rpm | cpio -idmv
 ##############################################
+User & Group:
 /etc/defaults/useradd
 /etc/skel/
 /etc/login.defs
@@ -16,7 +18,7 @@ gpasswd -d user group
 groupmod -n oldgroupname newgroupname
 lid -g groupname	#Display group's user
 ##############################################
-top:
+Top:
 	us: user processes percents
 	sy: kernel procecess percents
 	ni: is the percent of time spent running processes with manually configured nice values.
@@ -97,7 +99,7 @@ systemctl list-dependencies
 ************************************************
 ssh-keygen -t rsa --> -t means type
 ************************************************
-NFS
+NFS:
 Configuring nfs server:
 rpm: nfs-utils
 vim /etc/exports
@@ -139,3 +141,13 @@ user:role:type:level
 ps -eZ
 semanage port -a -t ssh_port_t -p tcp #PORTNUMBER
 semanage boolean -l -C
+chcon
+semanage
+getsebool
+************************************************
+Local Repository:
+************************************************
+Firewall:
+
+Stateful vs Stateless 
+
