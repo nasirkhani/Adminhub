@@ -21,7 +21,7 @@ source ~/.bashrc
 ---------------------------------------------------------------------------------------------
 6. Install Airflow 2.8.1
 pip install "apache-airflow[postgres]==2.8.1" \
-  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.9.txt
+  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.9.txt"
 ---------------------------------------------------------------------------------------------
 7. Install PostgreSQL 15
 sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
