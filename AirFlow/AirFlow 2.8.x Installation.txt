@@ -5,10 +5,10 @@ Step-by-Step Installation for Apache Airflow 2.8.x on RHEL 8
 sudo dnf update -y
 ---------------------------------------------------------------------------------------------
 2. Install Dependencies
-sudo dnf install -y gcc openssl-devel bzip2-devel libffi-devel libpq-devel python39-devel wget
+sudo dnf install -y gcc openssl-devel bzip2-devel libffi-devel libpq-devel python3-devel wget
 ---------------------------------------------------------------------------------------------
 3. Enable Python 3.9
-sudo dnf module install -y python39
+#sudo dnf module install -y python39
 python3.9 --version  # Verify (should show 3.9.x)
 ---------------------------------------------------------------------------------------------
 4. Create Virtual Environment
@@ -22,6 +22,9 @@ source ~/.bashrc
 6. Install Airflow 2.8.1
 pip install "apache-airflow[postgres]==2.8.1" \
   --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.9.txt"
+  
+pip install "apache-airflow[celery]==3.0.0" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.0/constraints-3.9.txt"
+
 ---------------------------------------------------------------------------------------------
 7. Install PostgreSQL 15
 sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
