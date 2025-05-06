@@ -25,6 +25,8 @@ pip install "apache-airflow[postgres]==2.8.1" \
   
 pip install "apache-airflow[celery]==3.0.0" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.0/constraints-3.9.txt"
 
+Extra Package:
+https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 ---------------------------------------------------------------------------------------------
 7. Install PostgreSQL 15
 sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -38,8 +40,11 @@ sudo systemctl start postgresql-15
 
 Edit authentication (/var/lib/pgsql/15/data/pg_hba.conf):
 # Change to md5 for local and IPv4 connections:
+local   all             all                                     trust
+# IPv4 local connections:
 host    all             all             127.0.0.1/32            md5
-local   all             all                                     md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
 
 Reload PostgreSQL:
 sudo systemctl reload postgresql-15
@@ -58,6 +63,10 @@ executor = LocalExecutor  # For production, use CeleryExecutor
 ---------------------------------------------------------------------------------------------
 11. Initialize Airflow Database
 airflow db init
+
+Version 3:
+airflow db migrate
+
 ---------------------------------------------------------------------------------------------
 12. Create Admin User
 airflow users create \
