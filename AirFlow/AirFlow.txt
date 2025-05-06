@@ -1,0 +1,148 @@
+1. Prerequisites
+Update OS & install system tools
+
+sudo dnf update -y
+sudo dnf install -y python3 python3-venv python3-pip postgresql-server postgresql-contrib gcc gcc-c++ libffi-devel openssl-devel sudo
+
+Create a dedicated system user
+Running Airflow as a non‑root user is best practice:
+
+sudo useradd -r -s /sbin/nologin airflow
+sudo mkdir /opt/airflow
+sudo chown airflow:airflow /opt/airflow
+------------------------------------------------------------------
+2. PostgreSQL Setup
+Initialize & start PostgreSQL
+
+sudo postgresql-setup --initdb
+sudo systemctl enable --now postgresql
+Secure & configure database
+Switch to the postgres user and set up Airflow’s DB/user:
+
+sudo -iu postgres psql <<SQL
+CREATE DATABASE airflow
+  WITH ENCODING='UTF8'
+       LC_COLLATE='en_US.UTF-8'
+       LC_CTYPE='en_US.UTF-8'
+       TEMPLATE=template0;
+CREATE USER airflow
+  WITH PASSWORD 'YOUR_STRONG_PASSWORD'
+  CREATEDB NOLOGIN;
+GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;
+\q
+SQL
+
+(Optional)—If you need remote DB access, edit /var/lib/pgsql/data/pg_hba.conf and allow airflow connections, then sudo systemctl reload postgresql.
+------------------------------------------------------------------
+3. Python Virtual Environment & Airflow Installation
+Switch to the airflow user
+
+sudo -iu airflow
+cd /opt/airflow
+Create & activate venv
+
+python3 -m venv venv
+source venv/bin/activate
+Upgrade pip & install Airflow
+We’ll install the core plus PostgreSQL support (and LocalExecutor)—you can add extras like celery or rabbitmq later:
+
+pip install --upgrade pip setuptools wheel
+pip install "apache-airflow[postgres]==3.*"
+------------------------------------------------------------------
+4. Configure Airflow
+Set environment variables
+Add these to /opt/airflow/airflow_env.sh:
+
+export AIRFLOW_HOME=/opt/airflow
+export AIRFLOW__CORE__EXECUTOR=LocalExecutor
+export AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:YOUR_STRONG_PASSWORD@localhost:5432/airflow
+export AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8080
+Then source it in your shell (or systemd services will source it):
+
+source /opt/airflow/airflow_env.sh
+
+Initialize the metadata database
+
+airflow db init
+Create an admin user
+
+airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com
+
+(Optional) Tune configs
+Edit $AIRFLOW_HOME/airflow.cfg for logging retention, parallelism, secrets backend, SMTP, etc.
+------------------------------------------------------------------
+5. Systemd Services
+Create two service units so Airflow starts on boot and runs as airflow user:
+
+Webserver: /etc/systemd/system/airflow-webserver.service
+
+[Unit]
+Description=Airflow Webserver
+After=network.target postgresql.service
+
+[Service]
+User=airflow
+Group=airflow
+EnvironmentFile=/opt/airflow/airflow_env.sh
+ExecStart=/opt/airflow/venv/bin/airflow webserver
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+Scheduler: /etc/systemd/system/airflow-scheduler.service
+
+[Unit]
+Description=Airflow Scheduler
+After=network.target postgresql.service
+
+[Service]
+User=airflow
+Group=airflow
+EnvironmentFile=/opt/airflow/airflow_env.sh
+ExecStart=/opt/airflow/venv/bin/airflow scheduler
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+Enable & start
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now airflow-webserver airflow-scheduler
+------------------------------------------------------------------
+6. Firewall & SELinux
+Firewall (if using firewalld):
+
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
+SELinux
+If you hit permission denials, you can audit & allow:
+
+sudo ausearch -c 'airflow' --raw | audit2allow -M airflow_local
+sudo semodule -i airflow_local.pp
+------------------------------------------------------------------
+7. Verification & Next Steps
+Verify services
+
+systemctl status airflow-webserver
+systemctl status airflow-scheduler
+
+Access UI
+Point your browser to http://<your‑server‑ip>:8080 and log in with the admin account.
+------------------------------------------------------------------
+Production hardening:
+
+Switch to CeleryExecutor with RabbitMQ/Redis for horizontal scaling
+
+Use Managed Secrets (HashiCorp Vault, AWS Secrets Manager)
+
+Configure email alerts, RBAC, and custom logging
+
+Set up backups for both the metadata DB and DAG files
+
+Monitor with Prometheus+Grafana or Airflow’s metrics endpoints
+------------------------------------------------------------------
+
