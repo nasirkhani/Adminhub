@@ -1,12 +1,12 @@
 1. Prerequisites
 Update OS & install system tools
-
+sudo dnf install epel-release
 sudo dnf update -y
 sudo dnf install -y python3 python3-venv python3-pip postgresql-server postgresql-contrib gcc gcc-c++ libffi-devel openssl-devel sudo
 
 Create a dedicated system user
 Running Airflow as a non‑root user is best practice:
-
+--> sudo useradd -m -s /bin/bash airflow
 sudo useradd -r -s /sbin/nologin airflow
 sudo mkdir /opt/airflow
 sudo chown airflow:airflow /opt/airflow
@@ -32,7 +32,13 @@ GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;
 \q
 SQL
 
-(Optional)—If you need remote DB access, edit /var/lib/pgsql/data/pg_hba.conf and allow airflow connections, then sudo systemctl reload postgresql.
+
+
+
+
+
+(Optional)—If you need remote DB access, edit /var/lib/pgsql/data/pg_hba.conf and allow airflow connections, then 
+sudo systemctl reload postgresql.
 ------------------------------------------------------------------
 3. Python Virtual Environment & Airflow Installation
 Switch to the airflow user
@@ -57,15 +63,22 @@ export AIRFLOW_HOME=/opt/airflow
 export AIRFLOW__CORE__EXECUTOR=LocalExecutor
 export AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:YOUR_STRONG_PASSWORD@localhost:5432/airflow
 export AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8080
+
+
 Then source it in your shell (or systemd services will source it):
 
 source /opt/airflow/airflow_env.sh
 
 Initialize the metadata database
 
-airflow db init
+#airflow db init
+airflow db migrate
+
 Create an admin user
 
+pip install apache-airflow-providers-fab
+vim airflow.cfg
+auth_manager = airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
 airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com
 
 (Optional) Tune configs
@@ -91,6 +104,7 @@ RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
+
 Scheduler: /etc/systemd/system/airflow-scheduler.service
 
 [Unit]
@@ -108,6 +122,7 @@ RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
+
 Enable & start
 
 sudo systemctl daemon-reload
@@ -118,6 +133,7 @@ Firewall (if using firewalld):
 
 sudo firewall-cmd --add-port=8080/tcp --permanent
 sudo firewall-cmd --reload
+
 SELinux
 If you hit permission denials, you can audit & allow:
 
@@ -145,4 +161,104 @@ Set up backups for both the metadata DB and DAG files
 
 Monitor with Prometheus+Grafana or Airflow’s metrics endpoints
 ------------------------------------------------------------------
+******************************************************************
+##################################################################
 
+Two common ways to put HTTPS in front of your Airflow 3 webserver on RHEL 9:
+
+Built‑in Gunicorn SSL
+
+Nginx reverse‑proxy with SSL
+------------------------------------------------------------------
+1. Enabling SSL Directly in Airflow (Gunicorn)
+Airflow’s webserver (Gunicorn) can serve TLS if you point it at your cert + key.
+
+Obtain or generate a certificate
+
+# For a quick self-signed cert (not for public use):
+sudo mkdir -p /etc/airflow/ssl
+sudo openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout /etc/airflow/ssl/airflow.key \
+  -out /etc/airflow/ssl/airflow.crt \
+  -subj "/C=US/ST=State/L=City/O=Org/OU=IT/CN=airflow.example.com"
+sudo chown airflow:airflow /etc/airflow/ssl/*
+sudo chmod 600 /etc/airflow/ssl/airflow.key
+Point Airflow at your cert & key
+In your airflow_env.sh (or directly in $AIRFLOW_HOME/airflow.cfg under [webserver]):
+
+export AIRFLOW__WEBSERVER__WEB_SERVER_SSL_CERT=/etc/airflow/ssl/airflow.crt
+export AIRFLOW__WEBSERVER__WEB_SERVER_SSL_KEY=/etc/airflow/ssl/airflow.key
+Or in airflow.cfg:
+
+[webserver]
+web_server_ssl_cert = /etc/airflow/ssl/airflow.crt
+web_server_ssl_key  = /etc/airflow/ssl/airflow.key
+Restart the webserver
+
+sudo systemctl restart airflow-webserver
+Now Gunicorn will listen on port 8080 via HTTPS. Adjust any firewalls (firewall-cmd --add-port=8080/tcp) as needed.
+------------------------------------------------------------------
+2. Using Nginx as a Reverse Proxy (Recommended)
+Putting Nginx in front gives you more flexibility (HTTP→HTTPS redirects, HSTS, load balancing):
+
+Install Nginx
+
+sudo dnf install -y nginx
+sudo systemctl enable --now nginx
+Obtain a TLS certificate
+
+Let’s Encrypt (Certbot):
+
+sudo dnf install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d airflow.example.com
+Or self‑signed: follow the same openssl req steps above and put the files in /etc/nginx/ssl/.
+
+Configure Nginx
+Create /etc/nginx/conf.d/airflow.conf:
+
+server {
+    listen 80;
+    server_name airflow.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name airflow.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/airflow.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/airflow.example.com/privkey.pem;
+    # add recommended SSL hardening settings here (HSTS, ciphers, etc.)
+
+    location / {
+        proxy_pass         http://127.0.0.1:8080;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 900;
+    }
+}
+
+Test & reload
+
+sudo nginx -t
+sudo systemctl reload nginx
+Open HTTPS in firewall
+
+sudo firewall-cmd --add-service=https --permanent
+sudo firewall-cmd --reload
+SELinux adjustments
+If Nginx can’t proxy, allow it:
+
+sudo setsebool -P httpd_can_network_connect 1
+Verification
+Browse to https://airflow.example.com — you should see the Airflow login over HTTPS.
+
+Confirm your cert is valid (no browser padlock warnings if you used a public CA).
+
+Which method?
+
+Gunicorn SSL is simplest if you just need HTTPS and don’t need advanced proxy features.
+
+Nginx is more production‑grade: you get redirects, caching, HSTS, and easy certificate renewal.
