@@ -7,13 +7,13 @@ I'd be happy to rewrite this RabbitMQ cluster installation guide specifically fo
 Before starting, you will need to update your system packages to the latest version on each node:
 
 ```bash
-dnf update -y
+sudo dnf update -y
 ```
 
 Next, set up the `/etc/hosts` file on each node so they can communicate with each other by hostname:
 
 ```bash
-nano /etc/hosts
+sudo vim /etc/hosts
 ```
 
 Add the following lines (adjust IP addresses according to your environment):
@@ -31,8 +31,9 @@ Save and close the file.
 First, you'll need to install the EPEL repository and required dependencies on each node:
 
 ```bash
-dnf install epel-release -y
-dnf install wget socat logrotate -y
+sudo dnf install epel-release -y
+sudo dnf config-manager --set-enabled crb
+sudo dnf install wget socat logrotate -y
 ```
 
 ## Install Erlang
@@ -41,8 +42,8 @@ RabbitMQ requires Erlang to run. Let's install it on each node:
 
 ```bash
 # Add Erlang repository
-dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-dnf install -y https://github.com/rabbitmq/erlang-rpm/releases/download/v25.0.3/erlang-25.0.3-1.el9.x86_64.rpm
+sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+sudo dnf install -y https://github.com/rabbitmq/erlang-rpm/releases/download/v25.0.3/erlang-25.0.3-1.el9.x86_64.rpm
 ```
 
 Verify Erlang installation:
