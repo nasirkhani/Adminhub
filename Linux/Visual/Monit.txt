@@ -1,6 +1,0 @@
-appdynamics
-dynatrace
-influxdb
-
-loki is for log
-mirmir is for metrics
