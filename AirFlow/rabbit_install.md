@@ -138,7 +138,7 @@ Make sure you note this value. Then on each of node2 and node3:
 
 2. Set the same cookie value:
    ```bash
-   echo "COOKIE_VALUE_FROM_NODE1" > /var/lib/rabbitmq/.erlang.cookie
+   sudo sh -c 'echo "YKMCEQQYWFZTVNQNHTSH" > /var/lib/rabbitmq/.erlang.cookie'
    ```
 
 3. Fix the permissions:
