@@ -42,7 +42,8 @@ RabbitMQ requires Erlang to run. Let's install it on each node:
 
 ```bash
 # Add Erlang repository
-sudo dnf install erlang -y
+sudo dnf install -y https://github.com/rabbitmq/erlang-rpm/releases/download/v25.0.3/erlang-25.0.3-1.el9.x86_64.rpm
+sudo dnf install -y https://github.com/rabbitmq/erlang-rpm/releases/download/v25.0.3/erlang-25.0.3-1.el9.x86_64.rpm
 ```
 
 Verify Erlang installation:
