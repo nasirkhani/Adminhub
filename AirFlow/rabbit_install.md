@@ -90,11 +90,15 @@ Restart the RabbitMQ service to apply the changes:
 ```bash
 systemctl restart rabbitmq-server
 ```
+
+add administrator user
+
 ```bash
 sudo rabbitmqctl add_user admin "QAZzaq@123"
 sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 sudo rabbitmqctl set_user_tags admin administrator
 ```
+
 Verify the listening port with:
 
 ```bash
