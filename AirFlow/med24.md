@@ -105,6 +105,12 @@ sudo systemctl restart postgresql
 
 RabbitMQ is required for task distribution between Celery workers in Airflow. Install and configure RabbitMQ on the Rocky Linux 9 server:
 
+   42  vim sestatus.conf
+   43  cd selinux/
+   44  ll
+   45  sudo vim config
+
+
 #### 2.1 **Install RabbitMQ**
 
 ```bash
