@@ -168,6 +168,7 @@ pip3 install apache-airflow[celery,postgres,crypto]
 # Install Celery (task queue manager) and Flower (web UI for monitoring Celery)
 pip3 install celery==4.4.7 flower==0.9.7
 ```
+but it have to be celery = 5.5.0 
 
 #### 3.2 **Configure Airflow Database**
 
