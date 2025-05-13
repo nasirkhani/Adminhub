@@ -53,6 +53,10 @@ erl -version
 ```
 
 ## Install RabbitMQ Server
+sudo vim /etc/hosts
+add 127.0.0.1 rabbit
+
+sudo hostnamectl set-hostname rabbit
 
 Now let's install RabbitMQ server on each node:
 
