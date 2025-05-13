@@ -36,7 +36,7 @@ sudo dnf config-manager --set-enabled crb
 sudo dnf install wget socat logrotate -y
 ```
 
-## Install Erlang
+## Install Erlang   --> https://www.rabbitmq.com/docs/install-rpm#downloads
 
 RabbitMQ requires Erlang to run. Let's install it on each node:
 
