@@ -80,6 +80,8 @@ GRANT ALL PRIVILEGES ON DATABASE airflow_db TO airflow_user;
 \q
 ```
 
+press ctrl + d to exit postgres user.
+
 Next, allow PostgreSQL to accept remote connections (important if you are setting up multi-node systems later):
 
 ```bash
