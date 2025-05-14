@@ -206,6 +206,7 @@ vi ~/airflow/airflow.cfg
 
 Modify the following sections:
 
+* **default_timezone = Asia/Tehran**
 * **executor = CeleryExecutor**
 * **sql\_alchemy\_conn = postgresql://airflow\_user\:airflow\_pass\@localhost:5432/airflow\_db**
 * **broker\_url = amqp\://airflow\_user\:airflow\_pass\@localhost:5672/airflow\_host**
