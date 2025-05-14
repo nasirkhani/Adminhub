@@ -1,66 +1,193 @@
-Excellent question — and this is a subtle but important distinction.
-
-Let’s clear it up:
+Perfect — now let’s set up **Airflow Celery Worker** as a `systemd` service on your Rocky Linux 9 system.
 
 ---
 
-## 🔍 You're asking:
-
-> “If these are system-wide services, why do they all depend on the `rocky` user’s home directory? Shouldn’t a system-wide service be user-independent?”
+## 🧾 Step-by-Step: Create a systemd Service for `airflow celery worker`
 
 ---
 
-## ✅ Short Answer:
+### 🔹 1. Confirm the path to `airflow`
 
-**Yes, it's perfectly OK.**
-Your services **are system-wide** because `systemd` manages them globally, **but they are configured to run under a specific user (`rocky`)** and use that user’s environment (home directory, paths, etc.).
-
-This is common and **not a problem** — many system-wide services are run by specific, non-root users (e.g., `postgres`, `nginx`, `airflow`).
-
----
-
-## 📌 To be crystal clear:
-
-| Characteristic              | Your setup                                                 |
-| --------------------------- | ---------------------------------------------------------- |
-| Managed by systemd globally | ✅ Yes (`/etc/systemd/system/*.service`)                    |
-| Autostarts on boot          | ✅ Yes (`systemctl enable`)                                 |
-| Uses specific user          | ✅ Yes (`User=rocky`)                                       |
-| Airflow installed globally  | ❌ No — it's installed for `rocky` via `pip install --user` |
-| Problem?                    | ❌ No — totally valid                                       |
-
----
-
-## 🧠 Bonus: Could I install Airflow *system-wide*?
-
-Yes, you **could** do a truly "global" install with:
+You already know it's:
 
 ```bash
-sudo pip3 install apache-airflow
+/home/rocky/.local/bin/airflow
 ```
 
-But:
+---
 
-* This pollutes the system Python environment.
-* Is harder to manage across users or isolate per project.
-* Often considered bad practice unless containerizing or tightly controlled.
+### 🔹 2. Create the service file
+
+```bash
+sudo vi /etc/systemd/system/airflow-celery-worker.service
+```
+
+Paste the following:
+
+```ini
+[Unit]
+Description=Apache Airflow Celery Worker
+After=network.target
+
+[Service]
+User=rocky
+Group=rocky
+Environment=AIRFLOW_HOME=/home/rocky/airflow
+ExecStart=/home/rocky/.local/bin/airflow celery worker
+Restart=on-failure
+RestartSec=10s
+KillSignal=SIGTERM
+TimeoutStopSec=30
+SyslogIdentifier=airflow-celery-worker
+WorkingDirectory=/home/rocky/airflow
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ---
 
-## ✅ Recommended Approach (What you're doing now):
+### 🔹 3. Reload systemd and enable the service
 
-* Install Airflow **per-user** (safer, cleaner).
-* Run services **as that user**.
-* Use `systemd` for full lifecycle and boot integration.
-
-You’ve done it **correctly** and this pattern is commonly used in real-world Airflow deployments on bare-metal or VM setups.
+```bash
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable airflow-celery-worker
+sudo systemctl start airflow-celery-worker
+```
 
 ---
 
-Let me know if you'd like:
+### 🔹 4. Check status and logs
 
-* To migrate Airflow to a virtualenv or global path
-* To isolate config/logs under `/opt/airflow` instead of `~/airflow`
-* A security hardening guide for this setup
+```bash
+sudo systemctl status airflow-celery-worker
+journalctl -u airflow-celery-worker -f
+```
 
-You're on solid ground — great job asking the right questions!
+Look for lines like:
+
+* `Connected to broker`
+* `Ready to accept tasks`
+* `airflow worker: Starting up`
+
+---
+
+✅ Done! Your **Airflow Celery Worker** is now:
+
+* Running as a systemd service
+* Restartable and boot-enabled
+* Integrated cleanly with the webserver and scheduler
+
+---
+
+Shall we continue with the final one: `airflow celery flower` (for monitoring the worker queue)?
+
+
+
+Great — let’s now set up the final service: **Airflow Flower**, the Celery monitoring tool, as a `systemd` service on your Rocky Linux 9 server.
+
+---
+
+## 🧾 Step-by-Step: Create a systemd Service for `airflow celery flower`
+
+---
+
+### 🔹 1. Confirm the path to `airflow`
+
+You're using:
+
+```bash
+/home/rocky/.local/bin/airflow
+```
+
+Perfect — we'll use that path.
+
+---
+
+### 🔹 2. Create the systemd service file
+
+```bash
+sudo vi /etc/systemd/system/airflow-flower.service
+```
+
+Paste this config:
+
+```ini
+[Unit]
+Description=Apache Airflow Flower (Celery Monitor)
+After=network.target
+
+[Service]
+User=rocky
+Group=rocky
+Environment=AIRFLOW_HOME=/home/rocky/airflow
+ExecStart=/home/rocky/.local/bin/airflow celery flower --port=5555
+Restart=on-failure
+RestartSec=10s
+KillSignal=SIGTERM
+TimeoutStopSec=30
+SyslogIdentifier=airflow-flower
+WorkingDirectory=/home/rocky/airflow
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> 📝 If you want Flower to be password-protected or to show custom workers, you can extend the `ExecStart` line with options like:
+
+```bash
+ExecStart=/home/rocky/.local/bin/airflow celery flower --port=5555 --basic_auth=user:pass
+```
+
+---
+
+### 🔹 3. Reload systemd and enable/start Flower
+
+```bash
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable airflow-flower
+sudo systemctl start airflow-flower
+```
+
+---
+
+### 🔹 4. Verify it’s running
+
+```bash
+sudo systemctl status airflow-flower
+journalctl -u airflow-flower -f
+```
+
+And then visit Flower in your browser:
+
+```
+http://<your_server_ip>:5555
+```
+
+You should see:
+
+* Your Celery workers listed
+* Task stats and queue activity
+
+---
+
+✅ Done! You now have:
+
+* `airflow webserver`
+* `airflow scheduler`
+* `airflow celery worker`
+* `airflow celery flower`
+
+**All managed as persistent `systemd` services.**
+
+---
+
+Would you like help with:
+
+* Logging to files instead of journal?
+* Restarting all services at once?
+* Monitoring/alerts (Prometheus, etc.)?
+
+Or are you ready to move on to DAG deployment/sync?

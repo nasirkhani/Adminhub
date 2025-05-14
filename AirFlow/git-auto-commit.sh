@@ -2,7 +2,7 @@
 
 # Navigate to the script's directory (relative path handling)
 cd "$(dirname "$0")"
-
+git pull
 git pull origin main --rebase
 
 # Stage all changes (you can customize this)
