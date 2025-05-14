@@ -1,0 +1,153 @@
+Compress, Uncompress, View
+gzip	, gunzip	, zcat
+bzip2	, bunzip2	, bzcat
+xz		, unxz		, xzcat
+zip		, unzip					
+tar
+star
+cpio	, 
+rpm2cpio tree-2.2.1-1.3.x86_64.rpm | cpio -idmv
+##############################################
+User & Group:
+/etc/defaults/useradd
+/etc/skel/
+/etc/login.defs
+
+usermod -d "/home/newknox" -m knox
+gpasswd -d user group
+groupmod -n oldgroupname newgroupname
+lid -g groupname	#Display group's user
+##############################################
+Top:
+	us: user processes percents
+	sy: kernel procecess percents
+	ni: is the percent of time spent running processes with manually configured nice values.
+	id: is the percent of time idle (if low, CPU may be overworked).
+	wa: is the percent of wait time (if high, CPU is waiting for I/O access).
+	hi: is the percent of time managing hardware interrupts.
+	si: is the percent of time managing software interrupts.
+	st: is the percent of virtual CPU time waiting for access to physical CPU.
+
+Process List
+	PID. The process ID.
+	USER. The user account that started the process.
+	PR. Process priority.
+	NI. Nice value, affecting scheduling priority.
+	VIRT. Total virtual memory the process uses.
+	RES. Resident memory (actual physical memory in use).
+	SHR. Shared memory used by the process.
+	S. Process state (e.g., S for sleeping, R for running).
+	%CPU. Percentage of CPU time used by the process.
+	%MEM. Percentage of RAM used by the process.
+	TIME+. Total CPU time the process has consumed.
+	COMMAND. The program, service, or command responsible for each active process.
+
+############################################
+Send Foreground Process to Background
+1. Ctrl + Z
+2. bg
+3. disown -h %<jobnumber>
+4. ps aux | grep <process>
+############################################
+Scheduling with systemd:
+/etc/systemd/system/
+touch 2 files:
+	clockfile.timer
+	clockfile.service
+Sample:
+Step 1:
+vim clockfile.service
+************************************************
+[Unit]
+Description=This is a little test of a clockfile.
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'echo $(date) >> /home/cent/clock.txt'
+User=cent
+************************************************
+Step 2:
+vim clockfile.timer
+************************************************
+[Unit]
+Description=This is the timer for the clockfile service.
+
+[Timer]
+OnBootSec=3min
+OnCalendar=*-*-* *:*:0
+
+[Install]
+WantedBy=graphical.target
+************************************************
+Step 3:
+test the syntax
+systemd-analyze calendar *-*-* *:*:0
+
+Step 4:
+systemctl daemon-reload
+systemctl start clockfile.timer
+-------------------------------------------------------------------
+rhel -> grub2-mkconfig -o /boot/grub2/grub.cfg
+deb -> update-grub
+-------------------------------------------------------------------
+systemctl get-default
+systemctl isolate <target>
+systemctl set-default <multi-user.target>
+targets -> /etc/systemd/system/
+			/usr/lib/systemd/system/
+systemctl list-dependencies
+************************************************
+ssh-keygen -t rsa --> -t means type
+************************************************
+NFS:
+Configuring nfs server:
+rpm: nfs-utils
+vim /etc/exports
+/var/networkshare       192.168.23.0/24(rw,sync,no_root_squash)
+chmod 777 /var/networkshare
+sudo systemctl start nfs-server
+sudo exportfs -r
+sudo exportfs
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --reload
+-------------------------------------------------------------------
+Configuring nfs clients:
+dnf install nfs-utils
+cd /mnt
+mkdir networkshare
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --reload
+mount 192.168.23.128:/var/networkshare /mnt/networkshare/
+vim /etc/fstab
+192.168.23.128:/var/networkshare        /mnt/networkshare       nfs     defaults        0 0
+-------------------------------------------------------------------
+autofs:
+dnf install autofs
+vim /etc/auto.master
+	under /misc
+	/networkshare	/etc/auto.networkshare
+vim /etc/auto.networkshare
+	sharedate	-rw		192.168.23.128:/var/networkshare
+systemctl start autofs
+************************************************
+Selinux:
+
+ls -Z
+user:role:type:level
+ps -eZ
+semanage port -a -t ssh_port_t -p tcp #PORTNUMBER
+semanage boolean -l -C
+chcon
+semanage
+getsebool
+************************************************
+Local Repository:
+************************************************
+Firewall:
+
+Stateful vs Stateless 
+

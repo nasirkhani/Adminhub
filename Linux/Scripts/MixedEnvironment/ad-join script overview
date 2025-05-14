@@ -1,0 +1,32 @@
+This script automates joining a Linux system to an Active Directory domain, handling DNS, time sync, package installation, and configuration of authentication components.
+
+Key Components:
+1) Privilege Check
+  Ensures script runs as root (required for system-wide changes)
+2) DNS Validation
+  Verifies proper SRV record resolution for AD domain controllers
+  Critical for discovering AD services
+3) Time Synchronization
+  Checks/installs NTP service (Chrony)
+  Compares local time with AD domain time (max 5 min difference allowed)
+4) Package Installation
+  Installs required AD integration tools:
+    realmd, sssd, adcli, Kerberos, Samba
+  Handles both apt/yum package managers
+5) Domain Join Process
+  Uses Kerberos authentication (kinit) with AD admin credentials
+  Executes realm join for actual domain enrollment
+6) SSSD Configuration
+  Configures user-friendly logins (no FQDN)
+  Sets home directory template
+  Secures configuration file permissions (600)
+7) PAM Setup
+  Enables automatic home directory creation
+  Essential for first-time user logins
+8) Sudo Integration
+  Allows AD group sudo access via dedicated sudoers file
+  Ensures secure file permissions (440)
+9) Verification Checks
+  Validates domain membership
+  Tests user lookup
+  Verifies SSSD service status
