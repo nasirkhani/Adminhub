@@ -178,11 +178,11 @@ sudo reboot
 Airflow 2.0 and above is installed via pip. You need to install necessary dependencies first.
 
 ```bash
-# Install Airflow dependencies (Python packages)
-pip3 install apache-airflow[celery,postgres,crypto]
+# Install Airflow 2.9.0 with Celery, Postgres, and Crypto extras
+pip3 install "apache-airflow[celery,postgres,crypto]==2.9.0"
 
-# Install Celery (task queue manager) and Flower (web UI for monitoring Celery)
-pip3 install celery==4.4.7 flower==0.9.7
+# Install Celery 5.5.0 and a compatible version of Flower
+pip3 install "celery==5.5.0" "flower==1.2.0"
 ```
 
 #### 3.2 **Configure Airflow Database**
