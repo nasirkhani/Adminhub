@@ -1,80 +1,66 @@
-Great — now let’s set up **Airflow Scheduler** to run as a **systemd service** on your Rocky Linux 9 system, just like you did for the webserver.
+Excellent question — and this is a subtle but important distinction.
+
+Let’s clear it up:
 
 ---
 
-## 🧾 Step-by-Step: Create a systemd Service for `airflow scheduler`
+## 🔍 You're asking:
 
-### 🔹 1. Verify the `airflow` binary path
+> “If these are system-wide services, why do they all depend on the `rocky` user’s home directory? Shouldn’t a system-wide service be user-independent?”
 
-We’ll reuse what you found earlier:
+---
+
+## ✅ Short Answer:
+
+**Yes, it's perfectly OK.**
+Your services **are system-wide** because `systemd` manages them globally, **but they are configured to run under a specific user (`rocky`)** and use that user’s environment (home directory, paths, etc.).
+
+This is common and **not a problem** — many system-wide services are run by specific, non-root users (e.g., `postgres`, `nginx`, `airflow`).
+
+---
+
+## 📌 To be crystal clear:
+
+| Characteristic              | Your setup                                                 |
+| --------------------------- | ---------------------------------------------------------- |
+| Managed by systemd globally | ✅ Yes (`/etc/systemd/system/*.service`)                    |
+| Autostarts on boot          | ✅ Yes (`systemctl enable`)                                 |
+| Uses specific user          | ✅ Yes (`User=rocky`)                                       |
+| Airflow installed globally  | ❌ No — it's installed for `rocky` via `pip install --user` |
+| Problem?                    | ❌ No — totally valid                                       |
+
+---
+
+## 🧠 Bonus: Could I install Airflow *system-wide*?
+
+Yes, you **could** do a truly "global" install with:
 
 ```bash
-which airflow
+sudo pip3 install apache-airflow
 ```
 
-➡️ Output: `/home/rocky/.local/bin/airflow`
+But:
+
+* This pollutes the system Python environment.
+* Is harder to manage across users or isolate per project.
+* Often considered bad practice unless containerizing or tightly controlled.
 
 ---
 
-### 🔹 2. Create the systemd service file
+## ✅ Recommended Approach (What you're doing now):
 
-```bash
-sudo vi /etc/systemd/system/airflow-scheduler.service
-```
+* Install Airflow **per-user** (safer, cleaner).
+* Run services **as that user**.
+* Use `systemd` for full lifecycle and boot integration.
 
-Paste the following:
-
-```ini
-[Unit]
-Description=Apache Airflow Scheduler
-After=network.target
-
-[Service]
-User=rocky
-Group=rocky
-Environment=AIRFLOW_HOME=/home/rocky/airflow
-ExecStart=/home/rocky/.local/bin/airflow scheduler
-Restart=on-failure
-RestartSec=10s
-KillSignal=SIGTERM
-TimeoutStopSec=30
-SyslogIdentifier=airflow-scheduler
-WorkingDirectory=/home/rocky/airflow
-
-[Install]
-WantedBy=multi-user.target
-```
+You’ve done it **correctly** and this pattern is commonly used in real-world Airflow deployments on bare-metal or VM setups.
 
 ---
 
-### 🔹 3. Reload systemd and enable the service
+Let me know if you'd like:
 
-```bash
-sudo systemctl daemon-reexec
-sudo systemctl daemon-reload
-sudo systemctl enable airflow-scheduler
-sudo systemctl start airflow-scheduler
-```
+* To migrate Airflow to a virtualenv or global path
+* To isolate config/logs under `/opt/airflow` instead of `~/airflow`
+* A security hardening guide for this setup
 
----
-
-### 🔹 4. Check that it’s working
-
-```bash
-sudo systemctl status airflow-scheduler
-```
-
-You should see:
-
-* `Active: active (running)`
-* Logs in journal with `journalctl -u airflow-scheduler -f`
-
----
-
-✅ That’s it — the **Airflow scheduler** is now:
-
-* Automatically started on boot
-* Managed as a system-wide service
-* Running as user `rocky`
-
-Would you like to continue with `airflow celery worker` next?
+You're on solid ground — great job asking the right questions!
