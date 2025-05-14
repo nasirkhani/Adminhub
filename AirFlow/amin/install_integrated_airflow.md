@@ -104,7 +104,7 @@ sudo systemctl restart postgresql
 ---
 
 ### Step 2: Install RabbitMQ 
-or use this site : https://www.rabbitmq.com/docs/install-rpm#downloads
+
 
 RabbitMQ is required for task distribution between Celery workers in Airflow. Install and configure RabbitMQ on the Rocky Linux 9 server:
 
@@ -117,7 +117,9 @@ sudo dnf install -y erlang
 # Install RabbitMQ
 sudo dnf install -y rabbitmq-server
 ```
+or install with : https://www.rabbitmq.com/docs/install-rpm#downloads
 
+then : 
 ```bash
 # Enable and start RabbitMQ service
 sudo systemctl enable --now rabbitmq-server
@@ -157,6 +159,15 @@ sudo systemctl restart rabbitmq-server
 ```
 
 RabbitMQ will now be available at `http://<your_vm_ip>:15672` (default login: `airflow_user`, password: `airflow_pass`).
+
+if you want to access the interface through external vm do : 
+
+```bash
+sudo systemctl disable firewalld.service 
+sudo vim /etc/sestatus.conf 
+sudo vim /etc/selinux/config 
+sudo reboot 
+```
 
 ---
 
