@@ -116,7 +116,9 @@ sudo dnf install -y erlang
 
 # Install RabbitMQ
 sudo dnf install -y rabbitmq-server
+```
 
+```bash
 # Enable and start RabbitMQ service
 sudo systemctl enable --now rabbitmq-server
 sudo systemctl start rabbitmq-server
