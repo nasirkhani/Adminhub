@@ -1,4 +1,0 @@
-Monitoring Core:
-	1) Data Collection
-	2) Problem Detection
-	3) Alerting
