@@ -191,3 +191,69 @@ Would you like help with:
 * Monitoring/alerts (Prometheus, etc.)?
 
 Or are you ready to move on to DAG deployment/sync?
+
+
+
+Here's exactly what to add to each `.service` file under the `[Unit]` section to enforce the recommended startup order:
+
+---
+
+### ✅ 1. `airflow-scheduler.service`
+
+Leave as is — it's the **first** to start, so no dependencies.
+
+```ini
+[Unit]
+Description=Apache Airflow Scheduler
+After=network.target
+```
+
+---
+
+### ✅ 2. `airflow-celery-worker.service`
+
+Start **after scheduler**.
+
+```ini
+[Unit]
+Description=Apache Airflow Celery Worker
+After=airflow-scheduler.service
+Requires=airflow-scheduler.service
+```
+
+---
+
+### ✅ 3. `airflow-webserver.service`
+
+Start **after scheduler and worker**.
+
+```ini
+[Unit]
+Description=Apache Airflow Webserver
+After=airflow-scheduler.service airflow-celery-worker.service
+Requires=airflow-scheduler.service airflow-celery-worker.service
+```
+
+---
+
+### ✅ 4. `airflow-flower.service`
+
+Start **after the worker**.
+
+```ini
+[Unit]
+Description=Apache Airflow Flower
+After=airflow-celery-worker.service
+Requires=airflow-celery-worker.service
+```
+
+---
+
+### 🔄 After editing all files:
+
+```bash
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+```
+
+Now `systemd` will start services in a clean, ordered, dependency-aware sequence on boot.
