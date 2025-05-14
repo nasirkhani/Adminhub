@@ -1,4 +1,4 @@
-To install Apache Airflow 2.0 in a Rocky Linux 9 server, configured with Python, PostgreSQL, RabbitMQ, and Celery, I'll guide you step by step. This guide will also include setting up your environment in VirtualBox (on Windows 11) and ensuring that all the dependencies are correctly installed.
+To install Apache Airflow 2.9 in a Rocky Linux 9 server, configured with Python, PostgreSQL, RabbitMQ, and Celery, I'll guide you step by step. This guide will also include setting up your environment in VirtualBox (on Windows 11) and ensuring that all the dependencies are correctly installed.
 
 ### Prerequisites
 
