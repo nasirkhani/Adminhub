@@ -1,4 +1,3 @@
-Perfect — now let’s set up **Airflow Celery Worker** as a `systemd` service on your Rocky Linux 9 system.
 
 ---
 
@@ -71,21 +70,6 @@ Look for lines like:
 * `Ready to accept tasks`
 * `airflow worker: Starting up`
 
----
-
-✅ Done! Your **Airflow Celery Worker** is now:
-
-* Running as a systemd service
-* Restartable and boot-enabled
-* Integrated cleanly with the webserver and scheduler
-
----
-
-Shall we continue with the final one: `airflow celery flower` (for monitoring the worker queue)?
-
-
-
-Great — let’s now set up the final service: **Airflow Flower**, the Celery monitoring tool, as a `systemd` service on your Rocky Linux 9 server.
 
 ---
 
@@ -184,15 +168,6 @@ You should see:
 
 ---
 
-Would you like help with:
-
-* Logging to files instead of journal?
-* Restarting all services at once?
-* Monitoring/alerts (Prometheus, etc.)?
-
-Or are you ready to move on to DAG deployment/sync?
-
-
 
 Here's exactly what to add to each `.service` file under the `[Unit]` section to enforce the recommended startup order:
 
@@ -257,3 +232,17 @@ sudo systemctl daemon-reload
 ```
 
 Now `systemd` will start services in a clean, ordered, dependency-aware sequence on boot.
+
+
+
+
+
+## 🧠 Tip: PATH Environment
+
+If `airflow` lives in `.local/bin` or a venv, `systemd` doesn’t automatically use that `PATH`. To make sure it runs correctly, you can also set the `PATH` explicitly in your service:
+
+```ini
+Environment=PATH=/home/rocky/.local/bin:/usr/bin:/bin
+```
+
+Add that line under `[Service]` if needed.
