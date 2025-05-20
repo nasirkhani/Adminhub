@@ -132,3 +132,184 @@ Different components in Airflow communicate via several connection types:
 - **UI access for workflow management** (black solid lines)
 - **Metadata database access by all components** (red dashed lines)
 
+
+# Distributed Airflow Architecture
+
+## Distributed Deployment Overview
+
+In a distributed architecture, Airflow components are spread across multiple machines, enabling better scalability, performance, and security. This approach introduces distinct user roles and security perimeters to ensure proper isolation and access control.
+
+## User Roles
+
+A distributed Airflow deployment typically involves several distinct user roles, as defined in the Airflow Security Model:
+
+1. **Deployment Manager**
+   - Responsible for installation and configuration
+   - Controls installed packages and plugins
+   - Manages overall system architecture and security
+
+2. **DAG Author**
+   - Writes and submits workflow definitions
+   - Creates custom operators and sensors
+   - Defines task dependencies and data flows
+
+3. **Operations User**
+   - Uses the web interface to monitor workflows
+   - Triggers DAGs and tasks
+   - Tracks execution status and troubleshoots issues
+   - Cannot author or modify DAGs
+
+## Security Considerations
+
+In distributed deployments, security becomes a critical consideration:
+
+- **Webserver Isolation**: The webserver doesn't have direct access to DAG files
+  - Code displayed in the UI's "Code" tab is read from the metadata database
+  - The webserver cannot execute code submitted by DAG authors
+  - It can only execute code installed as packages or plugins by the Deployment Manager
+
+- **Operations User Limitations**: Operations users have restricted permissions
+  - Can only trigger and monitor DAGs/tasks through the UI
+  - Cannot author or modify DAG definitions
+
+## DAG File Synchronization
+
+DAG files must be synchronized across all components that use them (scheduler, triggerer, and workers). Various synchronization mechanisms are available:
+
+- **Shared Storage**: Network file systems or mounted volumes
+- **Git-Sync**: Automatically pull from a Git repository
+- **Custom Synchronization**: Scripts or tools to distribute files
+- **Container-Based Solutions**: Kubernetes with shared persistent volumes
+
+Detailed synchronization methods are described in the "Manage DAG Files" documentation and in the Airflow Helm Chart documentation for Kubernetes deployments.
+
+## Advanced Architecture: Separate DAG Processing
+
+For environments with heightened security and isolation requirements, Airflow supports a standalone DAG processor component:
+
+- **Isolation Benefits**:
+  - Separates the scheduler from direct access to DAG files
+  - Ensures DAG author-provided code never executes in the scheduler context
+  - Provides additional security boundary
+
+- **Operation**:
+  - DAG processor parses DAG files and serializes them into the metadata database
+  - Scheduler reads parsed DAG information from the database
+  - No direct code execution from DAG files occurs in the scheduler process
+
+> **Note**: When a DAG file changes, the scheduler and workers might temporarily see different versions until both components synchronize. To avoid issues, deactivate DAGs during deployment and reactivate once finished. The synchronization and scan frequency of the DAG folder can be configured, but changing these settings requires careful consideration.
+
+## Airflow Workloads
+
+Airflow workflows (DAGs) consist of a series of Tasks. There are three primary types of tasks:
+
+### 1. Operators
+
+- Predefined, templated tasks
+- Ready-to-use building blocks for common operations
+- Examples include:
+  - `BashOperator` for running shell commands
+  - `PythonOperator` for executing Python functions
+  - `SqlOperator` for running SQL queries
+  - Various provider-specific operators (AWS, GCP, etc.)
+
+### 2. Sensors
+
+- Special subclass of Operators
+- Designed to wait for external events
+- Examples include:
+  - `FileSensor` for waiting for a file to appear
+  - `SqlSensor` for waiting for a SQL query to return results
+  - `ExternalTaskSensor` for waiting for another task to complete
+  - Provider-specific sensors for external services
+
+### 3. TaskFlow-Decorated Tasks
+
+- Custom Python functions wrapped as Tasks using the `@task` decorator
+- Part of the TaskFlow API introduced in Airflow 2.0
+- Simplifies task creation and data passing between tasks
+- Automatically handles XComs for data exchange
+
+Internally, all these task types are subclasses of Airflow's `BaseOperator`. Conceptually, Operators and Sensors serve as templates, while Tasks are their instantiated forms within a specific DAG.
+
+## Control Flow in DAGs
+
+DAGs are designed for repeated execution, with multiple runs potentially happening in parallel. Each DAG run is parameterized with:
+
+- A data interval (the time period the DAG is "running for")
+- Optional additional parameters
+
+### Task Dependencies
+
+Tasks have dependencies that determine their execution order. These can be declared using:
+
+#### Bitshift Operators
+```python
+# These are equivalent
+first_task >> [second_task, third_task]
+[second_task, third_task] << first_task
+
+# As are these
+fourth_task << third_task
+third_task >> fourth_task
+```
+
+#### Method Calls
+```python
+# These are equivalent
+first_task.set_downstream([second_task, third_task])
+[second_task, third_task].set_upstream(first_task)
+
+# As are these
+fourth_task.set_upstream(third_task)
+third_task.set_downstream(fourth_task)
+```
+
+These dependencies form the edges of the directed acyclic graph. By default, a task waits for all its upstream tasks to succeed before running, but this behavior can be customized with:
+
+- **Branching**: Conditional execution paths
+- **LatestOnly**: Only running for the most recent interval
+- **Trigger Rules**: Custom conditions for task execution
+
+### Data Passing Between Tasks
+
+There are three methods to pass data between tasks:
+
+1. **XComs** (Cross-communications)
+   - A system for passing small bits of metadata between tasks
+   - Best for small pieces of data (values, small dictionaries, etc.)
+   - Stored in the metadata database
+
+2. **External Storage**
+   - Upload/download files from external storage services
+   - Suitable for larger datasets
+   - Can use cloud storage (S3, GCS, etc.) or self-hosted solutions
+
+3. **TaskFlow API**
+   - Automatically handles data passing via implicit XComs
+   - Provides a more intuitive Python-native interface
+   - Simplifies the code needed for inter-task communication
+
+### Task Execution
+
+Airflow dispatches tasks to workers as resources become available. This means:
+
+- No guarantee that all tasks in a DAG will run on the same worker or machine
+- Tasks must be designed with distributed execution in mind
+- Shared resources should be accessed in a thread-safe manner
+
+## Managing DAG Complexity
+
+As DAGs grow in complexity, Airflow provides mechanisms to manage them:
+
+1. **SubDAGs**
+   - Reusable DAG components that can be embedded in other DAGs
+   - Enable modular workflow design
+   - Help standardize common patterns
+
+2. **TaskGroups**
+   - Visual organization of tasks in the UI
+   - Group related tasks together for better visualization
+   - Simplify complex DAG structures
+
+These techniques help maintain DAG readability and manageability as workflows grow in size and complexity.
