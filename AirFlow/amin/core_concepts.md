@@ -122,7 +122,6 @@ This type of installation is ideal for:
 - Single-user scenarios
 - Learning and experimentation
 
-For more complex deployment architectures, including distributed setups, multi-user environments, and enhanced security configurations, please refer to the complete Airflow documentation.
 
 ## Connection Types Between Components
 
