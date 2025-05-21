@@ -47,7 +47,9 @@
 * انجام تحلیل DAGها توسط Scheduler و ارسال تسک‌ها به Workerها برای اجرا
 
 
-* ![نمودار معماری پایه‌ی Airflow](diagram_basic_airflow_architecture.png)
+<p align="center">
+  <img src="diagram_basic_airflow_architecture.png" alt="نمودار معماری پایه‌ی Airflow" width="600">
+</p>
 
 
 ### موارد کاربرد مناسب
