@@ -72,7 +72,7 @@
 * **افزایش هزینه‌های نگهداری:** به دلیل جدا بودن اجزا، مانیتورینگ و پشتیبانی از سیستم دشوارتر است
 * **احتمال بروز تأخیر:** ارتباط بین اجزای مختلف ممکن است منجر به تأخیرهای جزئی در اجرای تسک‌ها شود
 <p align="center">
-  <img src="diagram_distributed_airflow_architecture.png" alt="نمودار معماری پایه‌ی Airflow" width="600">
+  <img src="diagram_distributed_airflow_architecture.png" alt="نمودار معماری توزیع شده Airflow" width="600">
 </p>
 
 
