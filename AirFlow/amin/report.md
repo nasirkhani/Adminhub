@@ -46,6 +46,7 @@
 * امکان استفاده از CeleryExecutor برای توزیع وظایف بین Workerها، یا KubernetesExecutor برای اجرای وظایف به‌صورت داینامیک در محیط‌های مبتنی بر Kubernetes
 * انجام تحلیل DAGها توسط Scheduler و ارسال تسک‌ها به Workerها برای اجرا
 
+
 * ![نمودار معماری پایه‌ی Airflow](diagram_basic_airflow_architecture.png)
 
 
