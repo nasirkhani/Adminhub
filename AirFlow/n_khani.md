@@ -1,29 +1,122 @@
-```
-[rocky@airflow ~]$ sudo systemctl status airflow-scheduler
-● airflow-scheduler.service - Apache Airflow Scheduler
-     Loaded: loaded (/etc/systemd/system/airflow-scheduler.service; enabled; preset: disabled)
-     Active: active (running) since Wed 2025-05-14 17:34:46 +0330; 4s ago
-   Main PID: 5043 (airflow)
-      Tasks: 4 (limit: 61404)
-     Memory: 209.2M
-        CPU: 6.089s
-     CGroup: /system.slice/airflow-scheduler.service
-             ├─5043 /usr/bin/python3 /home/rocky/.local/bin/airflow scheduler
-             ├─5064 "airflow scheduler -- DagFileProcessorManager"
-             ├─5120 "airflow scheduler - DagFileProcessor /home/rocky/.local/lib/python3.9/site-packages/airflow/example_dags/example_sla_dag.py"
-             └─5121 "airflow scheduler - DagFileProcessor /home/rocky/.local/lib/python3.9/site-packages/airflow/example_dags/example_params_ui_tutoria
+Let's break down three architectural approaches for Apache Airflow deployments, highlighting their differences, use cases, and trade-offs:
 
+---
 
-[rocky@airflow ~]$ journalctl -u airflow-scheduler -f
-May 14 17:34:48 airflow airflow-scheduler[5043]: ___  ___ |  / _  /   _  __/ _  / / /_/ /_ |/ |/ /
-May 14 17:34:48 airflow airflow-scheduler[5043]:  _/_/  |_/_/  /_/    /_/    /_/  \____/____/|__/
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.244+0330] {task_context_logger.py:63} INFO - Task context logging is enabled
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.389+0330] {executor_loader.py:235} INFO - Loaded executor: CeleryExecutor
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.419+0330] {scheduler_job_runner.py:796} INFO - Starting the scheduler
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.419+0330] {scheduler_job_runner.py:803} INFO - Processing each file at most -1 times
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.424+0330] {manager.py:170} INFO - Launched DagFileProcessorManager with pid: 5064
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.427+0330] {scheduler_job_runner.py:1595} INFO - Adopting or resetting orphaned tasks for active dag runs
-May 14 17:34:48 airflow airflow-scheduler[5064]: [2025-05-14T17:34:48.444+0330] {settings.py:60} INFO - Configured default timezone Asia/Tehran
-May 14 17:34:48 airflow airflow-scheduler[5043]: [2025-05-14T17:34:48.521+0330] {scheduler_job_runner.py:1618} INFO - Marked 1 SchedulerJob instances as failed
+### **1. Basic Airflow Deployment (Single-Node)**
+**Characteristics:**
+- Runs all components (scheduler, webserver, executor, and metadata database) on a single machine.
+- **Database:** SQLite (for development) or lightweight PostgreSQL/MySQL.
+- **Executor:** `SequentialExecutor` (tasks run one at a time) or `LocalExecutor` (parallel tasks on a single machine).
+- **DAG Processing:** DAG parsing and task execution handled by the scheduler and local workers.
 
-```
+**Use Cases:**
+- Local development/testing.
+- Small teams with minimal workflows (e.g., < 50 tasks/day).
+- Proof-of-concept projects.
+
+**Pros:**
+- Simple to set up (e.g., `airflow standalone` command).
+- Minimal infrastructure overhead.
+- Easy to debug (all components co-located).
+
+**Cons:**
+- No horizontal scalability.
+- Single point of failure.
+- Resource contention (e.g., database and scheduler compete for CPU/RAM).
+
+---
+
+### **2. Distributed Airflow Architecture**
+**Characteristics:**
+- Components split across multiple nodes:
+  - **Scheduler:** Orchestrates workflows.
+  - **Workers:** Execute tasks (Celery workers/Kubernetes pods).
+  - **Webserver:** Serves the UI.
+  - **Metadata Database:** Remote PostgreSQL/MySQL cluster.
+  - **Message Broker:** Redis/RabbitMQ (for Celery).
+- **Executors:** `CeleryExecutor` (worker pool) or `KubernetesExecutor` (dynamic pods).
+- **DAG Processing:** Scheduler parses DAGs and delegates tasks to distributed workers.
+
+**Use Cases:**
+- Production environments with hundreds of concurrent tasks.
+- Teams requiring high availability and fault tolerance.
+- Workflows with diverse resource needs (e.g., GPU-heavy tasks).
+
+**Pros:**
+- Horizontal scalability (add workers as needed).
+- Fault tolerance (no single point of failure).
+- Better resource isolation (dedicated nodes for components).
+
+**Cons:**
+- Complex setup (requires networking, distributed databases, message brokers).
+- Higher operational/maintenance costs.
+- Potential latency between components.
+
+---
+
+### **3. Separate DAG Processing Architecture**
+**Characteristics:**
+- Decouples DAG parsing from the scheduler:
+  - **DAG Processor:** Dedicated service(s) for parsing DAG files (e.g., Airflow 2.0+’s standalone DAG processor).
+  - **Scheduler:** Focuses only on task scheduling.
+  - **Workers:** Execute tasks (Celery/Kubernetes).
+  - **Object Storage:** DAG files stored in remote systems (e.g., S3, GCS).
+- **Executor:** Supports any executor (Celery/Kubernetes/Local).
+
+**Use Cases:**
+- Large-scale deployments with thousands of DAGs.
+- Teams needing faster DAG refresh cycles.
+- Organizations with strict separation of concerns (e.g., security/compliance).
+
+**Pros:**
+- Scalable DAG parsing (avoids scheduler bottlenecks).
+- Reduced scheduler workload (improves task scheduling latency).
+- Centralized DAG storage (sync DAGs across environments).
+
+**Cons:**
+- Added complexity (requires orchestration of DAG processors).
+- Requires object storage and distributed filesystems.
+- Overkill for small teams.
+
+---
+
+### **Comparison Table**
+| Feature                | Basic Deployment       | Distributed Architecture      | Separate DAG Processing       |
+|------------------------|------------------------|-------------------------------|--------------------------------|
+| **Scalability**         | None (single node)     | Horizontal (workers)          | Horizontal (workers + DAG parsing) |
+| **Components**          | All on one machine     | Scheduler, workers, DB, broker | Scheduler, workers, DAG processor, object storage |
+| **DAG Parsing**         | Scheduler handles it   | Scheduler handles it          | Dedicated DAG processor(s)     |
+| **Fault Tolerance**     | Low                    | High                          | High                           |
+| **Complexity**          | Low                    | Medium/High                   | High                           |
+| **Cost**                | Low                    | Medium/High                   | High                           |
+| **Best For**            | Development/testing    | Medium/large production       | Enterprise-scale production    |
+
+---
+
+### **When to Choose Which?**
+1. **Basic Deployment:**
+   - Startups, small teams, or experimental projects.
+   - Avoid for production with critical workflows.
+
+2. **Distributed Architecture:**
+   - Production environments with growing task volumes.
+   - Teams needing reliability and scalability.
+
+3. **Separate DAG Processing:**
+   - Enterprises with massive DAG counts (>1,000 DAGs).
+   - Organizations needing high-performance parsing (e.g., frequent DAG updates).
+
+---
+
+### **Hybrid Approaches**
+- **Distributed + Separate DAG Processing:** Common in large enterprises (e.g., Airflow clusters with dedicated DAG processors and Celery/Kubernetes workers).
+- **Cloud-Managed Services:** Tools like Astronomer, Google Cloud Composer, or AWS MWAA abstract away distributed complexity while offering scalability.
+
+---
+
+### **Key Considerations**
+- **Metadata Database:** Always use PostgreSQL/MySQL in production (never SQLite).
+- **Executor Choice:** `KubernetesExecutor` is ideal for dynamic workloads, while `CeleryExecutor` suits static worker pools.
+- **DAG Sync:** In distributed setups, use shared storage (e.g., S3, Git-synced volumes) to ensure DAGs are consistent across nodes.
+
+Would you like to dive deeper into any specific component or use case?
