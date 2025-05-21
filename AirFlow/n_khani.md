@@ -119,4 +119,5 @@ Let's break down three architectural approaches for Apache Airflow deployments, 
 - **Executor Choice:** `KubernetesExecutor` is ideal for dynamic workloads, while `CeleryExecutor` suits static worker pools.
 - **DAG Sync:** In distributed setups, use shared storage (e.g., S3, Git-synced volumes) to ensure DAGs are consistent across nodes.
 
-Would you like to dive deeper into any specific component or use case?
+=======================================================================================================
+https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html#architecture-diagrams
