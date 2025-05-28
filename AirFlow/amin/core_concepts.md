@@ -12,7 +12,7 @@ One of Airflow's key strengths is its agnosticism to the workloads it orchestrat
 
 Airflow's architecture consists of several components that work together to provide workflow orchestration capabilities. These components can be categorized as either required or optional, depending on your deployment needs.
 
-### Required Components
+## Required Components
 
 A minimal Airflow installation must include these four components:
 
