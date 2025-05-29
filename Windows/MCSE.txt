@@ -1,0 +1,184 @@
+HDD:
+	Platters:
+		Sector (512 bytes/4Kb)
+		Cluster(2^n sectors) .کوچکترین واحد آدرس دهی
+		اندازه کلاستر توسط فایل سیستم قابل تنظیم هست.
+		فرمت کردن دیسک یعنی دسته بندی سکتورها در کلاستر و ادرس های این کلاستر ها در یک جدول نوشته میشود.
+		زمانی که یک فایل به فایل سیستم داده میشود برای ذخیره شدن این فایل به تعداد کلاستر و اندازه کلاستر های از 
+		قبل تعیین شده تقسیم میشود و در کلاستر ها نوشته میشود و ادرس این کلاستر ها در یک جدول ذخیره میگردد
+		Track
+
+برای دیدن اندازه کلاستر میتوانیم از دستور 
+fsutil, diskpart,
+استفاده کنیم 
+sector vs physical sector:
+512E ==> enumeration
+یعنی معادل سازی میکند . برای اپلیکیشن ها فیزیکال سکتور 4096 بایتی را به 512 بایت 
+
+
+RAW Disk -> (Track,sector) -> Partition -> cluster
+
+
+partition:
+		Partition Table: 
+						1) MBR -> 4 Partition each partition 2TB -> for BIOS based systems(BIOS is a chipset)
+						2) GPT -> 128 Partition -> for UEFI based systems
+						GUID partition table
+						Globaly unique identifier
+
+آدرس دهی همیشه از بیرونی ترین ترک شروع میشود.
+ZBR -> Zone Bit Recording
+سرعت در ترک های داخلی خیلی کمتر از ترک های بیرونی هست.
+
+Types of file systems in windows:
+
+				|Drive size				|file size				features
+-------------------------------------------------------------------------
+FAT				|4 GB					|4 GB						--
+-------------------------------------------------------------------------
+FAT32			|32GB(2TB)				|4 GB						--
+-------------------------------------------------------------------------
+exFAT			|256TB(128PB)			|256TB(128PB)				--
+-------------------------------------------------------------------------
+NTFS			|256TB/8PB				|256TB/8PB					yes
+-------------------------------------------------------------------------
+ReFS			|35PB					|35PB						yes
+-------------------------------------------------------------------------
+Windows Commands:
+winver
+active directory users and computers: dsa.msc
+dnsmgmt.msc
+firewall.cpl
+sysdm.cpl
+
+netsh winsock reset catalog
+netsh int ip reset resetlog.txt
+netsh winsock reset
+ipconfig /registerdns
+ipconfig /flushdns
+ipconfig /release
+
+*****************************************
+This PC can't run windows error:
+close
+shift + f10
+regedit
+HKEY_LOCAL_MACHINE\SYSTEM\SETUP\
+make new key --> ex: LabConfig
+Make 3 DWORD:
+BypassSecureBootCheck
+BypassRamCheck
+BypassTPM
+Make all them value to "1"
+*****************************************
+mmc ports for remote administration:
+135,445,1024,1034 must be open on firewall's remote computer.
+*****************************************
+WAC Deployment Options:
+Local Client
+Gateway Server
+Managed Server
+Failover Cluster
+
+port 443 for ssl
+port 6516 for winrm
+Do not install WAC on a domain controller
+
+*****************************************
+
+After installing drivers, OS assigns an IRQ(interrupt request) (is a signal sent to a computer's processor to 
+momentarily stop (interrupt) its operations.) The signal is usually sent by a hardware device to interrupt the 
+processor so the device gets some time to run its own operation.
+Then OS assigns a DMA to Device.
+Direct memory access (DMA) is a technology that allows hardware devices to transfer data between themselves 
+and memory without involving the central processing unit (CPU).
+*****************************************
+raid 0 -> stripped -> better I/O performance -> good for gaming, streaming. 20 GB = 10 GB -> 1 disk fail = all data lost
+raid 1 -> mirrored -> 1 disk fail = data is available
+raid 5 -> stripping with parity -> 1 disk failure is recoverable, 2/3 of space is utilized -> read fast write slow
+raid 10 (01)-> firt stripping next mirroring. good for mail,database and web server
+*****************************************
+iSCSI
+Layer: 3 TCP/IP 4 OSI. Transport ( Segment )
+Block level storage protocol over tcp/ip
+ISCSI works on top of TCP and allows the SCSI command to be 
+sent end-to-end over local area networks (LANs), wide area networks (WANs) or the internet.
+Support:
+	multipathing
+	jumbo framing
+	data center bridging (DCB)
+
+Fiber Channel:
+	High speed network technology(Lossless/Raw Block ddata)
+	Transport SCSI commands over Fiber Channel Protocol (FCP)
+	Data rate 128 Gb/s 
+	transmit up to 10 kilometer
+
+Fiber Channel Over Ethernet (FCoE)
+	will not work with routing protocol
+
+NFS Network File SYSTEM
+	use RPC to route requests between client and server
+
+SMB/CIFS Sevrer Message Block/Common Internet File SYSTEM
+
+NVMe-oF Non-volatile memory over fabrics
+	High speed storage protocol to access SSD over ethernet or fiber channel
+
+Traversers folder/execute file
+
+SAM: Security Account Manager. <-- (LSD) Local Security Database
+
+ADDS: Security Database
+Domain Controller: is a server that ADDS installed on it.
+Standalone Server: is a machine in a workgroup.
+Member Server: is a machine in a domain.
+Redundancy: افزونگی، وجود جند مورد از یک چیز
+Fault Tolerance: تحمل در برابر خطا
+
+**********************************************************************
+default folder copy to a new user profile when the user login at first time.
+
+NTUSER.DAT keeps user settings
+AppData folder keeps applications settings
+
+whoami /user
+
+wmic useraccount where name='username' get sid
+
+wmic group where name='groupname' get sid
+
+
+OSI:
+Applicatio: برقراری ارتباط برنامه ها با سیستم عامل و شبکه
+Presentation: قالب بندی، ترجمه، رمزنگاری و فشرده سازی
+Session: برقراری، مدیریت و بستن ارتباطات دستگاه ها
+Transport: انتقال، و کنترل جریان داده ها بهمراه خطایابی
+Network: مسیریابی جهت انتقال داده ها و آدرس دهی منطقی
+Data Link: سازمان دهی بیت ها جهت انتقال تحت فریم ها ، ادرس دهی فیزیکی و خطایابی
+Physical: انتقال بیت ها روی مدیا و تبدیل جریان های حاوی داده ها
+
+Trailer: اطلاعات مربوط به خطایابی اضافه میشود.
+
+IGMP -> is for broadcast packet
+
+Class A -> from 1.0.0.0 to 126.255.255.255 -> 126
+127.0.0.1 to 127.255.255.255 -> loopback network
+Class B -> from 128 to 191 -> 
+Class C -> from 192 to 223
+Class D -> from 224 to 239 -> multicast
+Class E -> from 240 to 255 -> reserved
+
+ARP -> OSI L3
+
+SMTP
+FTP
+HTTP
+HTTPS
+DNS
+SNMO
+TELNET
+
+fsmgmt.msc
+
+

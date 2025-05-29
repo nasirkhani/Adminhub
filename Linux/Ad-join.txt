@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Ensure the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root."
+    exit 1
+fi
+
+# Function to check exit status
+check_status() {
+    if [ $? -ne 0 ]; then
+        echo "$1"
+        exit 1
+    fi
+}
+
+# ... [keep previous functions for DNS, time sync, package install, domain join] ...
+
+# Configure sudo access with admin privileges
+configure_sudo() {
+    echo -e "\nConfiguring sudo privileges..."
+    read -p "Enter AD username to grant sudo privileges: " SUDO_USER
+    read -p "Grant password-less sudo? [y/N]: " NOPASSWD
+
+    # Verify user exists in AD
+    echo "Checking user existence in AD..."
+    if ! id "${SUDO_USER}@${DOMAIN^^}" &> /dev/null; then
+        echo "Error: User ${SUDO_USER} not found in Active Directory"
+        exit 1
+    fi
+
+    # Create sudoers entry
+    SUDO_FILE="/etc/sudoers.d/ad-admins"
+    SUDO_ENTRY="${SUDO_USER}@${DOMAIN^^} ALL=(ALL) ALL"
+
+    if [[ "$NOPASSWD" =~ [yY] ]]; then
+        SUDO_ENTRY="${SUDO_USER}@${DOMAIN^^} ALL=(ALL) NOPASSWD:ALL"
+    fi
+
+    echo "Adding sudo entry: $SUDO_ENTRY"
+    echo "$SUDO_ENTRY" > "$SUDO_FILE"
+    
+    # Set secure permissions
+    chmod 440 "$SUDO_FILE"
+    if [ $(stat -c %a "$SUDO_FILE") -ne 440 ]; then
+        echo "ERROR: Sudoers file permissions not set to 440"
+        exit 1
+    fi
+
+    # Validate sudo configuration
+    if ! visudo -c -q; then
+        echo "ERROR: Invalid sudo configuration"
+        exit 1
+    fi
+}
+
+# Enhanced verification checks
+verify_join() {
+    echo -e "\nRunning verification checks..."
+    
+    echo -e "\n1. Checking domain membership:"
+    realm list
+    check_status "Failed to verify domain membership"
+
+    echo -e "\n2. Testing user lookup:"
+    read -p "Enter AD username to test: " TEST_USER
+    id "${TEST_USER}@${DOMAIN^^}"
+    check_status "User lookup failed"
+
+    echo -e "\n3. Verifying sudo configuration:"
+    if [ -n "$SUDO_USER" ]; then
+        echo "Checking sudo privileges for ${SUDO_USER}:"
+        sudo -U "${SUDO_USER}@${DOMAIN^^}" -l
+        check_status "Failed to verify sudo privileges"
+    fi
+
+    echo -e "\n4. Checking SSSD status:"
+    systemctl status sssd
+    check_status "SSSD service not running properly"
+
+    echo -e "\nAll verification checks passed!"
+}
+
+# Main execution
+check_dns
+check_time_sync
+install_packages
+join_domain
+configure_sssd
+configure_pam
+configure_sudo  # Modified function for user-specific sudo access
+
+systemctl restart sssd
+
+verify_join
+
+echo -e "\nDomain join completed successfully!"
+echo -e "Administrative access granted to: ${SUDO_USER}@${DOMAIN^^}"
+echo -e "Test installation privileges with:"
+echo -e "sudo -u ${SUDO_USER}@${DOMAIN^^} -- <command>"

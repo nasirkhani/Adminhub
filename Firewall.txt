@@ -1,0 +1,6 @@
+Packet filtering firewall
+stateful inspection firewall
+statefule multilayer inspection firewall
+proxy firewall
+next-generation firewall (NGFW)
+Network Address translation Firewall (NAT)

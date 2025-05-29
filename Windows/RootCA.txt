@@ -1,0 +1,18 @@
+Configure Enterorise Root CA:
+	1) Install Enterprise Root CA
+	2) Configure SSL for CA Web Enrollment
+	3) Register Root CA for All Clients
+	4) Configure Certificate Auto Enrollment
+
+Configuring Certificate Services (Section Role Services):
+	Stage One:
+	1) Certification Authority
+	2) Certificate Enrollment Policy Web Service
+	Stage Two
+	3) Certificate Enrollment Web Service
+	4) Certification Authority Web Enrollment
+	5) Network Device Enrollment Service
+	6) Online Responder
+	
+Make a user is active directory for usnig in service account
+This user must be in IIS_IUSRS in CA SRV. (not in active directory)

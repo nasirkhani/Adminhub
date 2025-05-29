@@ -1,0 +1,65 @@
+10 Active Directory Certificate Services Best Practices
+Active Directory Certificate Services is a core component of any PKI, and it's important to follow best practices when configuring it. Here are 10 tips to help you out.
+
+
+Jeffery Metcalf
+Published Nov 11, 2022
+Active Directory Certificate Services (AD CS) is a server role in Active Directory Domain Services (AD DS) that allows an enterprise to issue and manage public key certificates. These certificates can be used for a variety of purposes, such as authenticating users, encrypting communications, and digitally signing email and code.
+
+AD CS includes a variety of features and capabilities, making it a complex service to configure and manage. In this article, we will discuss 10 best practices for configuring and managing AD CS.
+
+1. Use a dedicated server for CA
+The CA is a critical component of your PKI infrastructure and as such, it needs to be highly available. By running the CA on a dedicated server, you can ensure that it has the resources it needs to function properly and that any maintenance or upgrades can be performed without affecting other components of your PKI.
+
+Additionally, using a dedicated server for the CA helps to improve security by isolating it from other parts of your network. This reduces the attack surface and makes it more difficult for an attacker to compromise the CA if they do manage to breach your network.
+
+2. Configure the CA to use an offline root key
+The offline root key is used to sign the CA’s certificate, and it should be stored in a secure location that is not accessible to the CA server. This is important because if the offline root key is compromised, an attacker could use it to issue their own certificates that would be trusted by the CA.
+
+Configuring the CA to use an offline root key helps to mitigate this risk by ensuring that the offline root key is not accessible to the CA server.
+
+3. Implement multiple CAs in your PKI hierarchy
+If you have a single CA and it goes offline for any reason, your entire PKI infrastructure is down. However, if you have multiple CAs, then the other CAs can keep issuing certificates even if one CA is down.
+
+This is especially important if you’re using Certificate Authorities for mission-critical applications, such as VPNs, email, or website SSL/TLS certificates.
+
+Additionally, having multiple CAs also helps with scalability. If you have a single CA and it gets overwhelmed with certificate requests, it can start to slow down. However, if you have multiple CAs, then the load can be spread out among them, which will help keep things running smoothly.
+
+4. Use Group Policy to enforce security settings on clients and servers
+Group Policy is a powerful tool that can be used to centrally manage and enforce security settings on computers in an Active Directory domain. By using Group Policy to configure Active Directory Certificate Services security settings, you can ensure that all computers in the domain are properly secured and that any changes to security settings are immediately propagated to all computers in the domain.
+
+Additionally, by using Group Policy to configure Active Directory Certificate Services security settings, you can simplify the process of auditing and compliance with security policies.
+
+5. Use certificate templates to issue certificates
+When you use certificate templates, you can specify exactly what the certificate will be used for. This way, you can ensure that only certificates that are actually needed are issued. For example, you can create a template for web server certificates that includes the key usage and extended key usage fields set to “Server Authentication” and “Client Authentication”.
+
+This is important because it helps to prevent certificate sprawl, which can lead to security vulnerabilities. By using certificate templates, you can also more easily revoke and renew certificates as needed.
+
+6. Issue smart card logon certificates only to users who need them
+If a user’s smart card is lost or stolen, it can be used to log into the domain and access sensitive data. Therefore, it’s important to limit who has them.
+
+Additionally, smart cards can be expensive, so there’s no need to issue them to users who don’t need them. By issuing them only to those who need them, you can save money and reduce the risk of unauthorized access.
+
+7. Revoke compromised or obsolete certificates immediately
+If a certificate is compromised, it means that someone else now has access to the resources that were protected by that certificate. This could allow an attacker to gain access to sensitive data or even take control of systems.
+
+Obsolete certificates can also pose a security risk. For example, if a certificate is used to protect communication between two systems and one of those systems is no longer in use, then that certificate should be revoked. Otherwise, an attacker could potentially intercept communications between the remaining system and any other systems that are using the obsolete certificate.
+
+Revoking a certificate is a relatively simple process, but it’s important to do it as soon as possible after a certificate is compromised or becomes obsolete.
+
+8. Monitor the health of your PKI with Windows Server Health Reports
+The Windows Server Health Report is a great way to get an overview of the health of your PKI. The report includes information on the status of your CA, certificate revocation lists (CRLs), and certificates.
+
+The report can be generated by running the “Get-ADCSDiagnostics” cmdlet. The output of the cmdlet can be exported to a CSV file for further analysis.
+
+The Windows Server Health Report is a valuable tool for troubleshooting problems with your PKI. It can also be used to monitor the health of your PKI over time.
+
+9. Back up your CA regularly
+Your CA is the heart of your PKI, and if it goes down, your entire PKI goes down with it. That means no one can authenticate to any services that rely on your PKI for security, which could bring your business to a screeching halt.
+
+Backing up your CA regularly gives you a way to quickly recover from a CA outage, and it’s something you should do even if you have multiple CAs in your PKI.
+
+To back up your CA, you’ll need to export its private key and certificate. You can do this using the Certificate Services console or the Certutil tool. Once you have the CA’s private key and certificate, you can store them in a safe location, such as an offline backup.
+
+10. Ensure that all administrators have two-factor authentication enabled
+If an attacker were to gain access to an administrator’s account, they would then have the ability to issue themselves a valid certificate, which they could use to impersonate other users or devices on the network. By requiring administrators to use two-factor authentication, you can be sure that even if an attacker gains access to an administrator’s account, they will not be able to issue themselves a valid certificate.

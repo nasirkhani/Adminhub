@@ -1,0 +1,43 @@
+SSSD --> System Security Services Daemon.
+		for handling:
+			authentication
+			authorisation
+			user and group information
+		its purpose to act as a gateway to microsoft domains for authentication and identity
+		resolution of users, and to provide consistent mapping of users and groups.
+NSS --> Name Service Switch
+		for resolving users and groups.
+PAM --> Plugable Authentication Module
+		for authentication requests.
+	SSSD consolidates all these operations.
+ADsys --> (Active Directory Group Policy integration)is an AD SYStem tool to integrate GPOs with a linux system.
+	purpose: is to ease integration of non-Microsoft operating systems into 
+			 an EXISTING Active Directory arcitecture.
+		ADsys composed of 2 parts:
+			1) adsysd: implements the group policy protocol. it relies on kerberos, samba and ldap.
+			2) adsysctl: command line interface
+openssl s_client -connect 192.168.91.11:443 -prexit
+**********************************************************************************************
+sudo apt install winbind libnss-winbind libpam-winbind
+sudo apt install sssd-ad sssd-tools realmd adcli
+*****************************
+network :
+version : 2
+ethernets :
+eth0 :
+dhcp4: true
+nameservers:
+addresses : [10.10.4.5 ]
+search: [ example.internal]
+******************************
+
+resolvectl status
+
+/etc/nsswitch.conf 
+passwd: files systemd winbind
+group: files systemd winbind
+
+sudo pam-auth-update --enable mkhomedir
+
+sudo apt install adsys
+sudo adsysctl policy admx lts-only

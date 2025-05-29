@@ -1,0 +1,102 @@
+DORA
+*******************************************************************************************
+Step 1: DHCP Discover (IP lease request)
+
+Client broadcast to the network for finding DHCP server
+DHCPDISCOVER is a broacast message
+Broadcast source address is 0.0.0.0
+Broadcast destination address is 255.255.255.255
+Client MAC address is in the message
+After 4 unsuccessful tries = client set APIPA (169.254.0.1 to 169.254.255.254)
+First attempt 2s // Second attempt 4s // Third attempt 6s // Fourth attempt 16s
+ٍEvery 5 minutes the process will be repeated.
+This process will be continued until the DHCP is available.
+*******************************************************************************************
+Step 2: DHCP Offer (IP Offer Response)
+
+DHCPOFFER is a broadcast message (Part of IP conflict detection)
+The client will respond to the first DHCP server response that is receives
+	DHCPOFFER message includes:
+		Offered IP Address
+		Server and Client MAC
+		Lease Duration Time
+		DHCP Server IP + Subnet
+*******************************************************************************************
+Step 3: DHCP Request (IP Selection Request)
+
+The Client has not approved the IP, so it will broadcast the reply to all DHCP servers
+DHCP broadcasts are sent using User Datagram Protocol (UDP) port numbers 67 and 68
+*******************************************************************************************
+Step 4: DHCP Acknowledgement (IP Lease Acknowledgement)
+
+DHCP server sent DHCPACK to client
+
+Sometimes the DHCP server will respond with DHCPNACK:
+	IP address is not valid
+	scope has been deactivated
+	
+	
+https://learn.microsoft.com/en-us/windows-server/troubleshoot/dynamic-host-configuration-protocol-basics
+https://www.geeksforgeeks.org/dynamic-host-configuration-protocol-dhcp/
+https://www.netmanias.com/en/post/techdocs/5998/dhcp-network-protocol/understanding-the-basic-operations-of-dhcp
+
+############################################################################################
+
+Microsoft DHCP Relay Agent = Cisco IP Helper
+
+DHCP dynamic DNS update
+
+	Step 1: Client: IP Lease Request
+	Step 2: DHCP SRV: IP Lease Acknowledgement
+	Step 3: Client: DNS dynamic update of host (A) name
+	Step 4: DHCP SRV: DNS dynamic update of pointer (PTR) name
+
+
+A record = client1.nasir.xyz = 192.168.30.1
+PTR Record = 192.168.30.1 = client1.nasir.xyz
+
+From 2008 --> DHCP Split Scope -> Exclusion Mechanism
+
+DHCP Failover:
+	Hot Standby Mode. Two server. SRV1(Active/Primary). SRV2(Passive/Secondary). SRV1 -> Replication <- SRV2
+	Load Sharing Mode. Two server. SRV1(Active/Primary). SRV2(Active/Secondary).
+	Server Cluster(Failover Clustring). using shared storage (include DHCP Scopes). Heartbeat. Active and Passive.
+
+
+	
+Multicast Scope:
+	MADCAP = Multicast Dynamic Client Allocation Protocol
+	Multicast Scope = 224.0.0.1 to 239.255.255.255 
+
+getmac /s ip
+
+
+Export configuration:
+Export-DhcpServer -computerName "SRV2" -File "C:\dhcpexport.xml"
+Import configuration:
+Import-DhcpServer -ComputerName "SRV1" -File "C:\dhcpexport.xml" -BackupPath "C:\dhcpbackup"
+Export configuration:
+netsh dhcp server export c:\Backup\dhcp.txt all
+Import configuration:
+netsh dhcp server import c:\Backup\dhcp.txt all
+
+IP conflict detection:
+Client send --> GARP (Gratuitous ARP) to server --> IP conflict detection, if other clients doesnt answer 
+				client accept the IP from the server, but if a client answerd to the GARP, client send a 
+				DHCPDECLINE to the server for a new IP address.
+
+unauthorized DHCP server --> rouge dhcp server
+
+
+Active Directory sent a DHCPINFORM packet to all clients to tell them that all dhcp authorized are these servers.
+
+in switches there is a mechanism which name is DHCP snooping that prevent working unauthorized DHCP servers.
+
+APIPA (Linked Local) --> 169.254.0.0 to 169.254.255.255 class B 255.255.0.0
+
+DHCP compacting and repairing:
+
+jetpack.exe --> need wins server.
+
+joined engine technology
+

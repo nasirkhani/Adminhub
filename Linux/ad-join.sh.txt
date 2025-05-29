@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Ensure the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root."
+    exit 1
+fi
+
+# Install required packages
+if command -v apt &> /dev/null; then
+    apt update
+    apt install -y realmd sssd sssd-tools libnss-sss libpam-sss adcli samba-common-bin krb5-user
+elif command -v yum &> /dev/null; then
+    yum install -y realmd sssd adcli krb5-workstation samba-common-tools
+else
+    echo "Unsupported package manager. Please install required packages manually."
+    exit 1
+fi
+
+# Get domain name from user
+read -p "Enter the Active Directory domain (e.g., example.com): " DOMAIN
+
+# Discover the domain
+if ! realm discover "$DOMAIN"; then
+    echo "Failed to discover domain $DOMAIN. Check network/DNS settings."
+    exit 1
+fi
+
+# Get admin credentials
+read -p "Enter AD admin username: " ADMIN_USER
+read -s -p "Enter AD admin password: " ADMIN_PASSWORD
+echo
+
+# Kerberos authentication
+echo "$ADMIN_PASSWORD" | kinit "$ADMIN_USER@$DOMAIN"
+if [ $? -ne 0 ]; then
+    echo "Kerberos authentication failed. Check credentials."
+    exit 1
+fi
+
+# Join the domain
+if ! realm join -v "$DOMAIN"; then
+    echo "Failed to join domain $DOMAIN"
+    exit 1
+fi
+
+# Configure SSSD
+SSSD_CONF="/etc/sssd/sssd.conf"
+echo "Configuring SSSD..."
+sed -i "s/use_fully_qualified_names = .*/use_fully_qualified_names = False/" "$SSSD_CONF"
+sed -i "/^\[domain\/$DOMAIN\]/a override_homedir = /home/%u\ndefault_shell = /bin/bash" "$SSSD_CONF"
+
+# Set proper permissions for SSSD config
+chmod 600 "$SSSD_CONF"
+
+# Configure automatic home directory creation
+PAM_FILE="/etc/pam.d/common-session"
+if [ -f "$PAM_FILE" ]; then
+    if ! grep -q "pam_mkhomedir" "$PAM_FILE"; then
+        echo "session required pam_mkhomedir.so skel=/etc/skel umask=0077" >> "$PAM_FILE"
+    fi
+else
+    echo "Note: Please configure pam_mkhomedir in your PAM configuration to auto-create home directories."
+fi
+
+# Configure sudo access
+read -p "Enter AD group for sudo access (leave empty to skip): " SUDO_GROUP
+if [ -n "$SUDO_GROUP" ]; then
+    echo "%$SUDO_GROUP@$DOMAIN ALL=(ALL) ALL" > /etc/sudoers.d/ad-sudoers
+    chmod 440 /etc/sudoers.d/ad-sudoers
+fi
+
+# Restart SSSD service
+systemctl restart sssd
+
+echo "Domain join complete!"
+echo "Test with: id <AD_user>"
+echo "Ensure time is synchronized with AD servers!"
