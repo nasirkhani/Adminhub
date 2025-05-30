@@ -25,8 +25,8 @@ Adapting a process model
 
 
 Polya suggests:
-    1) Understand the problem
-    2) Plan a solution
-    3) Carry out the plan
-    4) Examine the result for accuracy
+    1) Understand the problem (communication and analysis)
+    2) Plan a solution (modeling and software design)
+    3) Carry out the plan (code generation)
+    4) Examine the result for accuracy (testing and quality assurance)
 
