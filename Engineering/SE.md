@@ -21,4 +21,12 @@ Umberella activities:
     7) Reusability management
     8) Work product preparation and production
 
-Process Model
+Adapting a process model
+
+
+Polya suggests:
+    1) Understand the problem
+    2) Plan a solution
+    3) Carry out the plan
+    4) Examine the result for accuracy
+
