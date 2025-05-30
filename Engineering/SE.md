@@ -1,3 +1,5 @@
+# Software Engineering
+
 Framework activities:
     1) communication
     2) Planning
@@ -9,3 +11,12 @@ Framework activities:
         b. Testing
     5) Deployment
 
+Umberella activities:
+    1) Software project tracking and control
+    2) Risk management
+    3) Software quality assurance
+    4) Technical reviews
+    5) Measurment
+    6) Software configuration management
+    7) Reusability management
+    8) Work product preparation and production
