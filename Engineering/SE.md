@@ -20,3 +20,5 @@ Umberella activities:
     6) Software configuration management
     7) Reusability management
     8) Work product preparation and production
+
+Process Model
