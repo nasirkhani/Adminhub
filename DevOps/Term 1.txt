@@ -3,7 +3,7 @@
 12-factor (Methodology for design and implementing Cloud-native applications
 	12factor.net
 	1) Codebase
-		Each program 1 Code base like git.
+		Each program, 1 Code base, like git.
 	2) Dependencies
 		Expelicitly declare and isolate dependencies
 	3) 
