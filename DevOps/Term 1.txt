@@ -27,4 +27,11 @@
 	12) Admin processes
 		Run admin/management tasks as one-off processes
 	
+	Methodology: 12 factor
 	
+	Architecture:
+		1) Microservice
+		2) Monolethic
+		3) SOA
+	
+	Design pattern: MVC
