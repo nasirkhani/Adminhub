@@ -1,191 +1,196 @@
-# Session 5 (Revised): Running Tasks on Remote Machines
+I'll search for information about disabling global QoS in Celery with RabbitMQ for your specific setup.Based on my research, here's a comprehensive guide on **disabling global QoS in Celery with RabbitMQ** for your Airflow 2.9 + Celery 5.5 + RabbitMQ 4 setup:
 
-You've identified a critical issue - thank you! Version compatibility is extremely important in Airflow. Let's correct our approach.
+## 🎯 **Automatic Solution (Recommended - Celery 5.5+)**
 
-## SSH Provider Installation with Version Compatibility
+Celery 5.5 introduced automatic detection and handling of quorum queues with the `worker_detect_quorum_queues` setting, which is **enabled by default**. When enabled, the worker automatically detects if any queues are quorum queues and disables global QoS accordingly.
 
-First, install the correct version of the SSH provider that works with Airflow 2.9.0:
+### **Method 1: Enable Quorum Queues (Automatic Detection)**
 
-```bash
-pip install apache-airflow-providers-ssh==3.10.3 --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.0/constraints-3.9.txt"
-```
-
-This ensures we get a compatible provider version without upgrading your entire Airflow installation.
-
-## Configuring SSH with Key-Based Authentication (Recommended)
-
-### Step 1: Set Up SSH Keys (if not already done)
-
-On your Airflow server:
-
-```bash
-# Generate SSH key if you don't have one
-ssh-keygen -t ed25519 -C "airflow@example.com"
-
-# Copy the key to your remote server
-ssh-copy-id username@remote-server
-```
-
-### Step 2: Configure an SSH Connection in Airflow
-
-1. Go to Airflow UI → Admin → Connections
-2. Click "+" to add a new connection
-3. Fill in the details:
-   - **Connection Id**: `ssh_remote`
-   - **Connection Type**: `SSH`
-   - **Host**: Your remote server hostname or IP
-   - **Username**: SSH username
-   - **Private Key File**: Path to your private key (e.g., `/home/rocky/.ssh/id_ed25519`)
-   - **Port**: 22 (or your custom SSH port)
-
-### Step 3: Create a DAG with SSHOperator
+Add this to your Airflow configuration or celeryconfig.py:
 
 ```python
-# remote_execution_dag.py
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.providers.ssh.operators.ssh import SSHOperator
-from airflow.operators.bash import BashOperator
+# In your celeryconfig.py or airflow.cfg [celery] section
+from kombu import Queue
 
-with DAG(
-    'remote_execution_dag',
-    default_args={
-        'owner': 'your_name',
-        'retries': 1,
-        'retry_delay': timedelta(minutes=5),
-    },
-    description='Execute commands on remote servers',
-    schedule_interval='@daily',
-    start_date=datetime(2024, 5, 1),
-    catchup=False,
-) as dag:
+# Enable quorum queues
+task_default_queue_type = "quorum"
+task_default_exchange_type = "topic"
+broker_transport_options = {"confirm_publish": True}
 
-    # Task 1: Check system info on remote server
-    check_system = SSHOperator(
-        task_id='check_system_info',
-        ssh_conn_id='ssh_remote',  # Uses the SSH connection we created
-        command='hostname && uptime && df -h',  # Multiple commands
-    )
-    
-    # Task 2: Create a directory and script on remote server
-    setup_remote = SSHOperator(
-        task_id='setup_remote_environment',
-        ssh_conn_id='ssh_remote',
-        # Create directory and script in one command
-        command='''
-        mkdir -p /tmp/airflow_scripts &&
-        cat > /tmp/airflow_scripts/remote_script.py << 'EOL'
-import socket
-import datetime
-import os
+# Automatic detection is enabled by default
+worker_detect_quorum_queues = True  # This is the default
 
-# Get information about the remote environment
-hostname = socket.gethostname()
-current_time = datetime.datetime.now()
-user = os.getenv('USER')
-
-# Write results to a file
-with open('/tmp/remote_execution_result.txt', 'w') as f:
-    f.write(f"Script executed on host: {hostname}\\n")
-    f.write(f"Execution time: {current_time}\\n")
-    f.write(f"Executing user: {user}\\n")
-
-print(f"Script executed successfully on {hostname} at {current_time}")
-print(f"Results saved to /tmp/remote_execution_result.txt")
-EOL
-        ''',
-    )
-    
-    # Task 3: Run the Python script on remote server
-    run_remote_script = SSHOperator(
-        task_id='run_remote_script',
-        ssh_conn_id='ssh_remote',
-        command='python3 /tmp/airflow_scripts/remote_script.py',
-    )
-    
-    # Task 4: Verify the script output on remote server
-    verify_output = SSHOperator(
-        task_id='verify_script_output',
-        ssh_conn_id='ssh_remote',
-        command='cat /tmp/remote_execution_result.txt',
-    )
-    
-    # Task 5: Local task to confirm remote execution
-    confirm = BashOperator(
-        task_id='confirm_execution',
-        bash_command='echo "Remote tasks completed successfully"',
-    )
-    
-    # Set dependencies
-    check_system >> setup_remote >> run_remote_script >> verify_output >> confirm
+# Optional: Define specific quorum queues
+task_queues = [
+    Queue('default', queue_arguments={'x-queue-type': 'quorum'}),
+    Queue('high_priority', queue_arguments={'x-queue-type': 'quorum'}),
+]
 ```
 
-## Alternative: Using Celery with Worker-Specific Queues
-
-If you prefer using your Celery setup, you can assign specific tasks to specific workers:
-
-1. Start workers on different machines with specific queue names:
-
-```bash
-# On machine 1
-airflow celery worker -q machine1_queue
-
-# On machine 2
-airflow celery worker -q machine2_queue
+**In airflow.cfg:**
+```ini
+[celery]
+broker_transport_options = {"confirm_publish": True}
+worker_detect_quorum_queues = True
 ```
 
-2. Create a DAG that targets specific workers:
+---
+
+## 🔧 **Manual Solutions (If needed)**
+
+### **Method 2: Custom Celery Configuration Class**
+
+If you need to manually disable global QoS, you can create a custom configuration class that hooks into Celery's worker bootstrap process:
 
 ```python
-# celery_targeted_dag.py
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-import socket
+# Create a file: celery_custom_config.py
+from celery import bootsteps
+from celery.worker.consumer.consumer import QoS
 
-def get_hostname():
-    """Function that returns the current hostname"""
-    hostname = socket.gethostname()
-    print(f"Task executed on worker: {hostname}")
-    return hostname
-
-with DAG(
-    'celery_targeted_dag',
-    default_args={
-        'owner': 'your_name',
-        'retries': 1,
-        'retry_delay': timedelta(minutes=5),
-    },
-    description='Target specific Celery workers',
-    schedule_interval='@daily',
-    start_date=datetime(2024, 5, 1),
-    catchup=False,
-) as dag:
-
-    # This task should run on machine 1
-    task_for_machine1 = PythonOperator(
-        task_id='task_for_machine1',
-        python_callable=get_hostname,
-        queue='machine1_queue',  # Specific queue for machine 1
-    )
+class NoChannelGlobalQoS(bootsteps.StartStopStep):
+    """Disable global QoS for RabbitMQ compatibility"""
+    requires = {'celery.worker.consumer.tasks:Tasks'}
     
-    # This task should run on machine 2
-    task_for_machine2 = PythonOperator(
-        task_id='task_for_machine2',
-        python_callable=get_hostname,
-        queue='machine2_queue',  # Specific queue for machine 2
-    )
-    
-    # Set dependencies (these will run in parallel)
-    task_for_machine1 >> task_for_machine2
+    def start(self, c):
+        qos_global = False  # Disable global QoS
+        c.connection.default_channel.basic_qos(
+            0, c.initial_prefetch_count, qos_global
+        )
+        
+        def set_prefetch_count(prefetch_count):
+            return c.task_consumer.qos(
+                prefetch_count=prefetch_count,
+                apply_global=qos_global,  # Set to False
+            )
+        
+        c.qos = QoS(set_prefetch_count, c.initial_prefetch_count)
+
+# In your celeryconfig.py
+from celery import Celery
+app = Celery('airflow.executors.celery_executor')
+
+# Add the custom step
+app.steps['consumer'].add(NoChannelGlobalQoS)
 ```
 
-## Mini Exercise
+---
 
-1. Install the correct SSH provider version
-2. Set up SSH key-based authentication between your Airflow server and a remote machine
-3. Create the SSH connection in the Airflow UI
-4. Create and run the `remote_execution_dag.py` DAG
-5. Check the logs to see that the commands executed on the remote server
+### **Method 3: Airflow Configuration Approach**
 
-Let me know if you encounter any other compatibility issues or if you have questions about secure SSH authentication!
+Modify your **airflow.cfg** file:
+
+```ini
+[celery]
+# Basic broker settings
+broker_url = amqp://airflow_user:airflow_pass@localhost:5672/airflow_host
+result_backend = db+postgresql://airflow_user:airflow_pass@localhost:5432/airflow_db
+
+# Disable global QoS settings
+broker_transport_options = {"confirm_publish": True}
+worker_detect_quorum_queues = True
+
+# Optional: Force quorum queues
+task_default_queue_type = quorum
+```
+
+---
+
+## ⚠️ **Important Considerations**
+
+### **Limitations When Global QoS is Disabled:**
+
+When global QoS is disabled, several Celery features won't work as expected:
+
+1. **Autoscaling** - Won't work because it relies on changing prefetch counts
+2. **worker_enable_prefetch_count_reduction** - Will be a no-op
+3. **ETA/Countdown tasks** - Will block the worker until execution time
+
+### **RabbitMQ 4 Compatibility:**
+
+RabbitMQ 4.0 has deprecated some features including global_qos. You may see warnings like: `Deprecated features: global_qos`. To handle this properly, ensure your configuration explicitly disables global QoS.
+
+---
+
+## 🚀 **Complete Working Example**
+
+Here's a complete configuration for your setup:
+
+**1. Update airflow.cfg:**
+```ini
+[core]
+executor = CeleryExecutor
+
+[celery]
+broker_url = amqp://airflow_user:airflow_pass@localhost:5672/airflow_host
+result_backend = db+postgresql://airflow_user:airflow_pass@localhost:5432/airflow_db
+
+# Disable global QoS
+broker_transport_options = {"confirm_publish": True}
+worker_detect_quorum_queues = True
+task_default_queue_type = quorum
+```
+
+**2. Create celeryconfig.py in your AIRFLOW_HOME:**
+```python
+from kombu import Queue
+
+# Broker settings
+broker_url = 'amqp://airflow_user:airflow_pass@localhost:5672/airflow_host'
+result_backend = 'db+postgresql://airflow_user:airflow_pass@localhost:5432/airflow_db'
+
+# Disable global QoS
+broker_transport_options = {"confirm_publish": True}
+worker_detect_quorum_queues = True
+task_default_queue_type = "quorum"
+
+# Define queues with quorum type
+task_queues = [
+    Queue('default', queue_arguments={'x-queue-type': 'quorum'}),
+    Queue('high_priority', queue_arguments={'x-queue-type': 'quorum'}),
+    Queue('card_processing_queue', queue_arguments={'x-queue-type': 'quorum'}),
+]
+
+# Other important settings
+task_acks_late = True
+worker_prefetch_multiplier = 1
+```
+
+---
+
+## 🔍 **Verification**
+
+**1. Check if settings are applied:**
+```bash
+# Start Airflow celery worker with verbose logging
+airflow celery worker --loglevel=info
+
+# Look for messages like:
+# "Quorum queues detected, disabling global QoS"
+```
+
+**2. Monitor RabbitMQ:**
+```bash
+# Check queue types
+sudo rabbitmqctl list_queues name type
+
+# Should show queues with type "quorum"
+```
+
+**3. Test with Flower:**
+```bash
+airflow celery flower
+# Visit http://localhost:5555 to monitor workers
+```
+
+---
+
+## 📝 **Summary**
+
+For your **Airflow 2.9 + Celery 5.5 + RabbitMQ 4** setup:
+
+1. **Use Method 1** (automatic detection) - it's the cleanest approach
+2. **Enable quorum queues** with `task_default_queue_type = "quorum"`  
+3. **Set** `broker_transport_options = {"confirm_publish": True}`
+4. **Keep** `worker_detect_quorum_queues = True` (default)
+
+This configuration will automatically disable global QoS when quorum queues are detected, solving compatibility issues with RabbitMQ 4 while maintaining Airflow functionality.
