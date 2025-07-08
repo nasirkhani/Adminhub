@@ -166,7 +166,14 @@ if you want to access the interface through external vm do :
 sudo systemctl disable firewalld.service 
 sudo vim /etc/sestatus.conf 
 sudo vim /etc/selinux/config 
-sudo reboot 
+
+# change to:
+SELINUX=disabled
+sudo reboot
+
+# Verify SELinux is disabled after reboot:
+sestatus
+
 ```
 
 ---
