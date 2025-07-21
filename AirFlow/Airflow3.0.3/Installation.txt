@@ -145,7 +145,7 @@ graph TD
 4. **Configure Access (`/var/lib/pgsql/15/data/pg_hba.conf`):**
    ```conf
    host    all             all             192.168.1.0/24        md5
-   host    replication     repmgr          192.168.1.0/24        trust
+   host    replication     repmgr          192.168.1.0/24        md5
    ```
 
 5. **Create repmgr User:**
@@ -156,11 +156,34 @@ graph TD
 
 6. **Register Primary:**
    ```bash
-   sudo -u repmgr repmgr -d repmgr -U repmgr -f /etc/repmgr/15/repmgr.conf primary register
+   sudo find / -name repmgr 2>/dev/null
+   
+   sudo vi /etc/repmgr/15/repmgr.conf
+   
+	node_id=1
+	node_name='primary'
+	conninfo='host=your_primary_ip dbname=repmgr user=repmgr_15 password=your_password'
+	data_directory='/var/lib/pgsql/15/data'
+	pg_bindir='/usr/pgsql-15/bin'
+	replication_user='repmgr_15'
+	failover='automatic'
+	promote_command='/usr/pgsql-15/bin/repmgr standby promote -f /etc/repmgr/15/repmgr.conf --log-to-file'
+	follow_command='/usr/pgsql-15/bin/repmgr standby follow -f /etc/repmgr/15/repmgr.conf --log-to-file --upstream-node-id=%n'
+   
+   
+   sudo systemctl status postgresql-15
+   sudo -u postgres psql -c "CREATE USER repmgr_15 WITH SUPERUSER PASSWORD 'secure_password';"
+	sudo -u postgres psql -c "CREATE DATABASE repmgr OWNER repmgr_15;"
+	
+	
+   
+   sudo -u repmgr /usr/pgsql-15/bin/repmgr -d repmgr -U repmgr_15 -f /etc/repmgr/15/repmgr.conf primary register
    ```
 
 7. **Configure Standbys:**
    ```bash
+   sudo -u postgres psql -c "ALTER USER repmgr WITH PASSWORD 'your_secure_password';"
+
    sudo -u repmgr repmgr -h primary-ip -U repmgr -d repmgr standby clone
    sudo systemctl start postgresql-15
    sudo -u repmgr repmgr standby register
