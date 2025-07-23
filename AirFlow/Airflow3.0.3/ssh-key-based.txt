@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Interactive script for setting up SSH key-based authentication for the postgres user
+# across 3 PostgreSQL nodes for use with repmgr
+
+set -e
+
+echo "PostgreSQL repmgr SSH Key Setup for 3 Nodes"
+echo "-------------------------------------------"
+echo "This script must be run as root or with sudo privileges."
+echo
+
+# Step 1: Gather node information
+read -p "Enter hostname or IP for Node 1: " NODE1
+read -p "Enter hostname or IP for Node 2: " NODE2
+read -p "Enter hostname or IP for Node 3: " NODE3
+NODES=("$NODE1" "$NODE2" "$NODE3")
+
+echo
+echo "Nodes to configure: ${NODES[*]}"
+echo
+
+# Step 2: Generate SSH keys for postgres user if not present
+for HOST in "${NODES[@]}"; do
+    echo "Checking/generating SSH key on $HOST..."
+    ssh "$HOST" "sudo -u postgres bash -c 'if [ ! -f ~/.ssh/id_rsa ]; then mkdir -p ~/.ssh && chmod 700 ~/.ssh && ssh-keygen -t rsa -b 4096 -N \"\" -f ~/.ssh/id_rsa; fi'"
+done
+
+# Step 3: Collect all public keys
+echo
+echo "Collecting public keys from each node..."
+PUBKEYS=()
+for HOST in "${NODES[@]}"; do
+    PUBKEY=$(ssh "$HOST" "sudo -u postgres cat ~/.ssh/id_rsa.pub")
+    PUBKEYS+=("$PUBKEY")
+done
+
+# Step 4: Merge public keys into authorized_keys on all nodes
+echo
+echo "Setting up authorized_keys on all nodes..."
+for HOST in "${NODES[@]}"; do
+    TMPFILE=$(mktemp)
+    for PUBKEY in "${PUBKEYS[@]}"; do
+        echo "$PUBKEY" >> "$TMPFILE"
+    done
+    # Remove duplicates
+    sort -u "$TMPFILE" -o "$TMPFILE"
+    # Copy authorized_keys to remote
+    cat "$TMPFILE" | ssh "$HOST" "sudo -u postgres tee ~/.ssh/authorized_keys > /dev/null"
+    ssh "$HOST" "sudo -u postgres chmod 600 ~/.ssh/authorized_keys"
+    rm "$TMPFILE"
+done
+
+# Step 5: Test SSH connectivity
+echo
+echo "Testing SSH connectivity between nodes (as postgres user)..."
+for FROM in "${NODES[@]}"; do
+    for TO in "${NODES[@]}"; do
+        if [ "$FROM" != "$TO" ]; then
+            echo -n "From $FROM to $TO: "
+            ssh "$FROM" "sudo -u postgres ssh -o StrictHostKeyChecking=no -o BatchMode=yes $TO hostname" && echo "OK" || echo "FAILED"
+        fi
+    done
+done
+
+echo
+echo "SSH key-based authentication setup is complete for the postgres user on all nodes."
+echo "You can now use repmgr or PostgreSQL streaming replication without password prompts."

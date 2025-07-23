@@ -1,0 +1,100 @@
+To enable all your PostgreSQL nodes to reach each other via SSH using **key-based authentication** for the `postgres` user, follow these steps on **all nodes**:
+
+---
+
+## 1. Allow `postgres` User to Use SSH
+
+- Make sure the `postgres` user has a home directory and can use SSH.
+- If needed, switch to root and check/create the `.ssh` directory for postgres:
+  ```bash
+  sudo -i -u postgres
+  mkdir -p ~/.ssh
+  chmod 700 ~/.ssh
+  ```
+
+---
+
+## 2. Generate SSH Key Pair (on Each Node)
+
+On **each node**, as the `postgres` user:
+```bash
+sudo -i -u postgres
+ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+```
+- Press enter for all prompts (no passphrase).
+
+---
+
+## 3. Exchange Public Keys Between All Nodes
+
+For **each node**, you need to append its public key (`~/.ssh/id_rsa.pub`) to the `~/.ssh/authorized_keys` file on **the other two nodes** for the `postgres` user.
+
+Example (replace `NODE2` and `NODE3` with actual hostnames or IPs):
+
+```bash
+# On node1, copy to node2 and node3:
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE2
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE3
+
+# On node2, copy to node1 and node3:
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE1
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE3
+
+# On node3, copy to node1 and node2:
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE1
+ssh-copy-id -i ~/.ssh/id_rsa.pub postgres@NODE2
+```
+
+If `ssh-copy-id` is not available, you can do this manually:
+```bash
+cat ~/.ssh/id_rsa.pub | ssh postgres@NODE2 'cat >> ~/.ssh/authorized_keys'
+```
+
+---
+
+## 4. Set Permissions
+
+On all nodes, ensure permissions are correct:
+```bash
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+---
+
+## 5. Test SSH Connectivity
+
+From each node, as `postgres`, test SSH to the other nodes:
+```bash
+ssh postgres@NODE2 hostname
+```
+- You should not be prompted for a password.
+
+---
+
+## 6. (Optional) Disable SSH Password Authentication
+
+Edit `/etc/ssh/sshd_config`:
+```
+PasswordAuthentication no
+```
+Then restart SSH:
+```bash
+sudo systemctl restart sshd
+```
+
+---
+
+## **Summary Table**
+
+| Step             | Command/Action                                         | On         |
+|------------------|-------------------------------------------------------|------------|
+| Generate keys    | `ssh-keygen -t rsa ...`                               | All nodes  |
+| Exchange keys    | `ssh-copy-id ...`                                     | All nodes  |
+| Set permissions  | `chmod 700 ~/.ssh; chmod 600 ~/.ssh/authorized_keys`  | All nodes  |
+| Test SSH         | `ssh postgres@other-node hostname`                    | All nodes  |
+| (Optional) Disable password auth | Edit `sshd_config`/restart sshd       | All nodes  |
+
+---
+
+Let me know if you need a script to automate this!
