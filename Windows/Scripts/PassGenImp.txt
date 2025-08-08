@@ -1,5 +1,0 @@
-.\GeneratePassword.ps1 -Length 12 -Count 1 -ConvertTo Text
-
-.\GeneratePassword.ps1 -Length 12 -Count 1 -ConvertTo Binary
-
-.\GeneratePassword.ps1 -Length 12 -Count 1 -ConvertTo All

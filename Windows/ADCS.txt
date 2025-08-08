@@ -1,9 +1,0 @@
-ADCS Roles:
-		1) Authentication
-		2) Encryption
-		3) Digital signature
-		
-Public Key Cryptography:
-		Public Key
-		Private Key
-

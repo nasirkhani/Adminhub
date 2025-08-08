@@ -1,2 +1,0 @@
-Setting up a cross-domain trust between FreeIPA and AD
-
