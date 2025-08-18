@@ -68,12 +68,31 @@ for ip, hostname in targets.items():
 for ip, hostname in targets.items():
     print(f"\n--- Working on {hostname} ({ip}) ---")
     
-    # 1. Disable SELinux
-    print("Disabling SELinux...")
-    selinux_cmd = "sudo sed -i 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config"
-    run_ssh_command(ip, selinux_cmd)
+    # 1. Update system packages
+    print("Updating system packages...")
+    run_ssh_command(ip, "sudo dnf update -y")
+    run_ssh_command(ip, "sudo dnf upgrade -y")
     
-    # 2. Add hosts to /etc/hosts (remove duplicates first)
+    # 2. Install common packages
+    print("Installing common packages...")
+    run_ssh_command(ip, "sudo dnf install -y vim curl wget rsync nfs-utils firewalld")
+    
+    # 3. Disable SELinux
+    print("Disabling SELinux...")
+    run_ssh_command(ip, "sudo setenforce 0")
+    run_ssh_command(ip, "sudo sed -i 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config")
+    
+    # 4. Configure timezone
+    print("Setting timezone to Asia/Tehran...")
+    run_ssh_command(ip, "sudo timedatectl set-timezone Asia/Tehran")
+    
+    # 5. Create rocky user with sudo privileges
+    print("Setting up rocky user...")
+    run_ssh_command(ip, "sudo useradd -m -s /bin/bash rocky")
+    run_ssh_command(ip, "echo 'rocky:111' | sudo chpasswd")
+    run_ssh_command(ip, "echo 'rocky ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/rocky")
+    
+    # 6. Add hosts to /etc/hosts (remove duplicates first)
     print("Updating /etc/hosts...")
     
     # Remove old entries
