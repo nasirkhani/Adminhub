@@ -1,184 +1,90 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-# Simple Airflow Cluster Setup Script
-# Run from celery-1 VM
+import subprocess
+import sys
 
-# List of all VMs (hostname:ip)
-VMS="
-celery-2:10.101.20.48
-celery-3:10.101.20.49
-celery-4:10.101.20.50
-ftp:10.101.20.56
-zabbix:10.101.20.57
-nfs-1:10.101.20.54
-nfs-2:10.101.20.55
-postgre-1:10.101.20.40
-postgre-2:10.101.20.41
-postgre-3:10.101.20.42
-rabbit-1:10.101.20.51
-rabbit-2:10.101.20.52
-rabbit-3:10.101.20.53
-scheduler-1:10.101.20.45
-scheduler-2:10.101.20.46
-webserver-1:10.101.20.43
-webserver-2:10.101.20.44
-informix:10.101.20.159
-ibmmq:10.101.20.135
-tcp:10.101.20.143
-sw:10.101.20.131
-"
-
-USERNAME="rocky"
-PASSWORD="111"
-
-# Function to run command on remote VM
-run_on_vm() {
-    local host=$1
-    local ip=$2
-    local cmd=$3
-    
-    echo "Running on $host ($ip): $cmd"
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no $USERNAME@$ip "$cmd"
+# Target VMs
+targets = {
+    '10.101.20.47': 'celery-1',
+    '10.101.20.48': 'celery-2',
+    '10.101.20.49': 'celery-3',
+    '10.101.20.50': 'celery-4',
+    '10.101.20.56': 'ftp',
+    '10.101.20.57': 'zabbix',
+    '10.101.20.54': 'nfs-1',
+    '10.101.20.55': 'nfs-2',
+    '10.101.20.40': 'postgre-1',
+    '10.101.20.41': 'postgre-2',
+    '10.101.20.42': 'postgre-3',
+    '10.101.20.51': 'rabbit-1',
+    '10.101.20.52': 'rabbit-2',
+    '10.101.20.53': 'rabbit-3',
+    '10.101.20.45': 'scheduler-1',
+    '10.101.20.46': 'scheduler-2',
+    '10.101.20.43': 'webserver-1',
+    '10.101.20.44': 'webserver-2',
+    '10.101.20.159': 'informix',
+    '10.101.20.135': 'ibmmq',
+    '10.101.20.143': 'tcp',
+    '10.101.20.131': 'sw'
 }
 
-# Install sshpass if not available
-install_sshpass() {
-    if ! command -v sshpass &> /dev/null; then
-        echo "Installing sshpass..."
-        sudo dnf install -y sshpass
-    fi
-}
+username = 'rocky'
 
-# Main setup function
-setup_vm() {
-    local hostname=$1
-    local ip=$2
+def run_ssh_command(ip, command):
+    """Run SSH command on remote server"""
+    # Try SSH key first
+    ssh_cmd = f"ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o PasswordAuthentication=no {username}@{ip} '{command}'"
     
-    echo "=================================="
-    echo "Setting up $hostname ($ip)"
-    echo "=================================="
+    try:
+        result = subprocess.run(ssh_cmd, shell=True, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"✓ Command successful on {ip} (SSH key)")
+            return True
+    except:
+        pass
     
-    # 1. Update system
-    run_on_vm $hostname $ip "sudo dnf update -y"
+    # If SSH key fails, try with password using sshpass
+    ssh_cmd_pass = f"sshpass -p '111' ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no {username}@{ip} '{command}'"
     
-    # 2. Install basic packages
-    run_on_vm $hostname $ip "sudo dnf install -y vim curl wget nfs-utils"
-    
-    # 3. Disable SELinux
-    run_on_vm $hostname $ip "sudo setenforce 0"
-    run_on_vm $hostname $ip "sudo sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config"
-    
-    # 4. Set timezone
-    run_on_vm $hostname $ip "sudo timedatectl set-timezone Asia/Tehran"
-    
-    # 5. Set hostname
-    run_on_vm $hostname $ip "sudo nmcli general hostname $hostname"
-    
-    # 6. Add hosts entries
-    run_on_vm $hostname $ip "echo '
-10.101.20.47 celery-1
-10.101.20.48 celery-2
-10.101.20.49 celery-3
-10.101.20.50 celery-4
-10.101.20.56 ftp
-10.101.20.57 zabbix
-10.101.20.54 nfs-1
-10.101.20.55 nfs-2
-10.101.20.40 postgre-1
-10.101.20.41 postgre-2
-10.101.20.42 postgre-3
-10.101.20.51 rabbit-1
-10.101.20.52 rabbit-2
-10.101.20.53 rabbit-3
-10.101.20.45 scheduler-1
-10.101.20.46 scheduler-2
-10.101.20.43 webserver-1
-10.101.20.44 webserver-2
-10.101.20.159 informix
-10.101.20.135 ibmmq
-10.101.20.143 tcp
-10.101.20.131 sw
-' | sudo tee -a /etc/hosts"
-    
-    echo "✓ $hostname setup completed"
-}
+    try:
+        result = subprocess.run(ssh_cmd_pass, shell=True, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"✓ Command successful on {ip} (password)")
+            return True
+        else:
+            print(f"✗ Command failed on {ip}: {result.stderr}")
+            return False
+    except Exception as e:
+        print(f"✗ Error connecting to {ip}: {e}")
+        return False
 
-# Check what to do
-case "${1:-all}" in
-    "test")
-        echo "Testing connections..."
-        install_sshpass
-        echo "$VMS" | while read line; do
-            if [ -n "$line" ]; then
-                hostname=$(echo $line | cut -d: -f1)
-                ip=$(echo $line | cut -d: -f2)
-                if ping -c 1 $ip >/dev/null 2>&1; then
-                    echo "✓ $hostname ($ip) - OK"
-                else
-                    echo "✗ $hostname ($ip) - FAILED"
-                fi
-            fi
-        done
-        ;;
-        
-    "ssh")
-        echo "Setting up SSH keys..."
-        install_sshpass
-        
-        # Generate SSH key if not exists
-        if [ ! -f ~/.ssh/id_ed25519 ]; then
-            ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
-        fi
-        
-        # Copy SSH key to all VMs
-        echo "$VMS" | while read line; do
-            if [ -n "$line" ]; then
-                hostname=$(echo $line | cut -d: -f1)
-                ip=$(echo $line | cut -d: -f2)
-                echo "Copying SSH key to $hostname..."
-                sshpass -p "$PASSWORD" ssh-copy-id -o StrictHostKeyChecking=no $USERNAME@$ip
-            fi
-        done
-        ;;
-        
-    "all")
-        echo "Starting complete setup..."
-        install_sshpass
-        
-        # Setup each VM
-        echo "$VMS" | while read line; do
-            if [ -n "$line" ]; then
-                hostname=$(echo $line | cut -d: -f1)
-                ip=$(echo $line | cut -d: -f2)
-                setup_vm $hostname $ip
-            fi
-        done
-        
-        echo "Setup completed! Now rebooting all VMs..."
-        
-        # Reboot all VMs
-        echo "$VMS" | while read line; do
-            if [ -n "$line" ]; then
-                hostname=$(echo $line | cut -d: -f1)
-                ip=$(echo $line | cut -d: -f2)
-                echo "Rebooting $hostname..."
-                run_on_vm $hostname $ip "sudo reboot" || true
-            fi
-        done
-        
-        echo "All VMs are rebooting. Wait 2-3 minutes."
-        ;;
-        
-    *)
-        echo "Usage: $0 [test|ssh|all]"
-        echo ""
-        echo "  test - Test connectivity to all VMs"
-        echo "  ssh  - Setup SSH keys"
-        echo "  all  - Complete setup (default)"
-        echo ""
-        echo "Examples:"
-        echo "  $0 test    # Test if all VMs are reachable"
-        echo "  $0 ssh     # Setup SSH keys"
-        echo "  $0 all     # Do everything"
-        ;;
-esac
+# Create hosts entries file
+hosts_content = ""
+for ip, hostname in targets.items():
+    hosts_content += f"{ip} {hostname}\\n"
+
+# Main script
+for ip, hostname in targets.items():
+    print(f"\n--- Working on {hostname} ({ip}) ---")
+    
+    # 1. Disable SELinux
+    print("Disabling SELinux...")
+    selinux_cmd = "sudo sed -i 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config"
+    run_ssh_command(ip, selinux_cmd)
+    
+    # 2. Add hosts to /etc/hosts (remove duplicates first)
+    print("Updating /etc/hosts...")
+    
+    # Remove old entries
+    for target_ip, target_host in targets.items():
+        cleanup_cmd = f"sudo sed -i '/{target_ip}/d; /{target_host}/d' /etc/hosts"
+        run_ssh_command(ip, cleanup_cmd)
+    
+    # Add new entries
+    add_hosts_cmd = f"echo -e '{hosts_content}' | sudo tee -a /etc/hosts"
+    run_ssh_command(ip, add_hosts_cmd)
+    
+    print(f"Finished {hostname}")
+
+print("\nAll done!")
