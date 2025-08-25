@@ -91,3 +91,6 @@ sudo dnf install -y python3 python3-pip python3-devel gcc gcc-c++ postgresql-dev
 pip3 install "apache-airflow[celery,postgres,crypto]==2.9.0" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.0/constraints-3.9.txt"
 pip3 install paramiko
 ```
+
+
+sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms; sudo subscription-manager repos --enable=codeready-builder-for-rhel-9-x86_64-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-optional-rpms
