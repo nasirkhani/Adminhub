@@ -93,4 +93,10 @@ pip3 install paramiko
 ```
 
 
-sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms; sudo subscription-manager repos --enable=codeready-builder-for-rhel-9-x86_64-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-optional-rpms
+sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms; sudo subscription-manager repos --enable=codeready-builder-for-rhel-9-x86_64-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-rpms; sudo subscription-manager repos --enable=rhel-9-for-x86_64-optional-rpms   
+
+
+
+   sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms ;sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm ; sudo dnf install htop -y
+
+
