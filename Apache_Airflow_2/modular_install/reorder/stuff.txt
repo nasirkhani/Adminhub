@@ -1,0 +1,250 @@
+echo "CARD001,John Doe,1234567890123456,2025-12" > ~/card/in/card_batch_001.txt
+echo "CARD002,Jane Smith,2345678901234567,2026-01" >> ~/card/in/card_batch_001.txt
+echo "CARD003,Bob Johnson,3456789012345678,2025-06" > ~/card/in/card_batch_002.txt
+echo "CARD004,Alice Brown,4567890123456789,2026-03" >> ~/card/in/card_batch_002.txt
+echo "CARD005,Charlie Wilson,5678901234567890,2025-09" > ~/card/in/card_batch_003.txt
+
+
+echo "2 2" >> ~/card/num/num_001.txt
+echo "3 3" >> ~/card/num/num_002.txt
+echo "4 4" > ~/card/num/num_003.txt
+
+
+
+################# NFS ###########################
+sudo systemctl status nfs-server.service airflow-dag-processor.service lsyncd.service
+
+
+std stnf stls
+
+
+df -hT | grep nfs # Shows NFS mounts with disk usage
+df -h | grep airflow; mount | grep airflow
+mount | grep "/home/rocky/airflow/dags"
+
+sudo umount -f /home/rocky/airflow/dags
+# Unmount all NFS filesystems
+sudo umount -a -t nfs,nfs4
+# Or alternatively:
+sudo umount $(mount -t nfs,nfs4 | awk '{print $3}')
+
+
+
+sudo rm -rf /home/rocky/airflow/dags
+sudo mkdir -p /home/rocky/airflow/dags
+sudo chown -R rocky:rocky /home/rocky/airflow/dags
+sudo chmod -R 755 /home/rocky/airflow/dags
+
+sudo rm -rf /home/rocky/airflow/logs
+sudo mkdir -p /home/rocky/airflow/logs
+sudo chown -R rocky:rocky /home/rocky/airflow/logs
+sudo chmod -R 755 /home/rocky/airflow/logs
+
+
+sudo mount -t nfs 192.168.83.132:/srv/airflow/logs /home/rocky/airflow/logs
+sudo mount -t nfs 192.168.83.132:/srv/airflow/dags /home/rocky/airflow/dags
+
+
+echo "192.168.83.132:/srv/airflow/logs /home/rocky/airflow/logs nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "192.168.83.132:/srv/airflow/dags /home/rocky/airflow/dags nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+
+
+
+
+
+sudo systemctl status keepalived.service
+sudo drbdadm status airflow-dags
+ip a
+
+
+
+ens160
+
+sudo vi /etc/hosts
+
+# Add to /etc/hosts on ALL three RabbitMQ VMs
+
+192.168.83.129 airflow
+192.168.83.152 airflow2
+
+192.168.83.132 ftp
+192.168.83.150 nfs2
+192.168.83.200 nfs-cluster
+
+192.168.83.133 card1
+
+192.168.83.131 worker1
+192.168.83.153 worker2
+
+192.168.83.141  mq1
+192.168.83.142  mq2
+192.168.83.138  mq3
+
+192.168.83.148 sql1
+192.168.83.147 sql2
+192.168.83.149 sql3
+
+192.168.83.150 scheduler2
+
+sudo vi .bashrc
+source .bashrc
+
+
+# --- HAProxy Aliases ---
+alias jha='sudo journalctl -u haproxy.service -f'
+alias sha='sudo systemctl status haproxy.service'
+alias stha='sudo systemctl start haproxy.service'
+alias spha='sudo systemctl stop haproxy.service'
+alias rha='sudo systemctl restart haproxy.service'
+
+# --- Airflow Webserver Aliases ---
+alias jw='sudo journalctl -u airflow-webserver.service -f'
+alias sw='sudo systemctl status airflow-webserver.service'
+alias stw='sudo systemctl start airflow-webserver.service'
+alias spw='sudo systemctl stop airflow-webserver.service'
+alias rw='sudo systemctl restart airflow-webserver.service'
+
+# --- Airflow Scheduler Aliases ---
+alias js='sudo journalctl -u airflow-scheduler.service -f'
+alias ss='sudo systemctl status airflow-scheduler.service'
+alias sts='sudo systemctl start airflow-scheduler.service'
+alias sps='sudo systemctl stop airflow-scheduler.service'
+alias rs='sudo systemctl restart airflow-scheduler.service'
+
+# --- Airflow DAG Processor Aliases ---
+alias jd='sudo journalctl -u airflow-dag-processor.service -f'
+alias sd='sudo systemctl status airflow-dag-processor.service'
+alias std='sudo systemctl start airflow-dag-processor.service'
+alias spd='sudo systemctl stop airflow-dag-processor.service'
+alias rd='sudo systemctl restart airflow-dag-processor.service'
+
+# --- Airflow Worker Aliases ---
+# Using 'work' to differentiate from other airflow services
+alias jwork='sudo journalctl -u airflow-worker.service -f'
+alias swork='sudo systemctl status airflow-worker.service'
+alias stwork='sudo systemctl start airflow-worker.service'
+alias spwork='sudo systemctl stop airflow-worker.service'
+alias rwork='sudo systemctl restart airflow-worker.service'
+
+# --- RabbitMQ Server Aliases ---
+alias jmq='sudo journalctl -u rabbitmq-server.service -f'
+alias smq='sudo systemctl status rabbitmq-server.service'
+alias stmq='sudo systemctl start rabbitmq-server.service'
+alias spmq='sudo systemctl stop rabbitmq-server.service'
+alias rmq='sudo systemctl restart rabbitmq-server.service'
+
+# --- Patroni Aliases ---
+alias jpat='sudo journalctl -u patroni.service -f'
+alias spat='sudo systemctl status patroni.service'
+alias stpat='sudo systemctl start patroni.service'
+alias sppat='sudo systemctl stop patroni.service'
+alias rpat='sudo systemctl restart patroni.service'
+
+# --- ETCD Aliases ---
+alias jet='sudo journalctl -u etcd.service -f'
+alias set='sudo systemctl status etcd.service'
+alias stet='sudo systemctl start etcd.service'
+alias spet='sudo systemctl stop etcd.service'
+alias ret='sudo systemctl restart etcd.service'
+
+# ---  nfs Aliases ---
+alias jnf='sudo journalctl -u nfs-server.service -f'
+alias snf='sudo systemctl status nfs-server.service'
+alias stnf='sudo systemctl start nfs-server.service'
+alias spnf='sudo systemctl stop nfs-server.service'
+alias rnf='sudo systemctl restart nfs-server.service'
+
+
+# --- keepalived Aliases ---
+alias jk='sudo journalctl -u keepalived.service -f'
+alias sk='sudo systemctl status keepalived.service'
+alias stk='sudo systemctl start keepalived.service'
+alias spk='sudo systemctl stop keepalived.service'
+alias rk='sudo systemctl restart keepalived.service'
+
+
+
+# --- lsyncd Aliases ---
+alias jls='sudo journalctl -u lsyncd.service -f'
+alias sls='sudo systemctl status lsyncd.service'
+alias stls='sudo systemctl start lsyncd.service'
+alias spls='sudo systemctl stop lsyncd.service'
+alias rls='sudo systemctl restart lsyncd.service'
+
+
+
+
+
+
+
+
+User sessions
+
+airflow2-1-129
+
+airflow2-2-152
+
+airflow3-1
+
+airflow3-2
+
+card1-tg2-133
+
+MQ1-134
+
+MQ2-139
+
+MQ3-143
+
+NFS1-FTP-tg1-132
+
+NFS2-150
+
+psg1-140
+
+psg2-144
+
+psg3-145
+
+sql1-148
+
+sql2-147
+
+sql3-149
+
+V3MQ1-141
+
+V3-MQ2-142
+
+V3-MQ3-138
+
+worker 1-131
+
+worker2-146
+
+
+
+
+===============================================
+curl -s http://192.168.83.129:8080 | grep -i "airflow" && echo "VM14 Webserver: SUCCESS" || echo "VM14 Webserver: FAILED"
+
+
+
+watch -n 1 'printf "%-20s %s\n" \
+"airflow-dag:" "$(systemctl is-active airflow-dag-processor.service)" \
+"lsyncd:" "$(systemctl is-active lsyncd.service)" \
+"keepalived:" "$(systemctl is-active keepalived.service)" \
+"nfs-server:" "$(systemctl is-active nfs-server.service)"'
+
+
+sudo tail -f /var/log/nfs-keepalived.log
+jk
+
+sudo /usr/local/bin/nfs-become-backup.sh
+
+
+
+itsmaryamabdii
+delicious.cafes
+
+===============================================
