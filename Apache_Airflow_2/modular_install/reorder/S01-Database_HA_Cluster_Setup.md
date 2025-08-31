@@ -2,7 +2,7 @@
 
 ## PostgreSQL High Availability Cluster with Patroni and etcd
 
-### Step 1.1: Install PostgreSQL and etcd (VM9, VM10, VM11)
+### Step 1.1:  Install PostgreSQL and etcd (VM9, VM10, VM11)
 
 **Execute on all three database nodes (postgresql-1, postgresql-2, postgresql-3):**
 
@@ -586,3 +586,4 @@ This completes the PostgreSQL High Availability cluster setup with:
 ✅ **Health Monitoring**: REST API endpoints for cluster monitoring  
 
 **Next Steps**: Proceed to **S02-HAProxy_Load_Balancer_HA_Setup.md** to configure load balancing and VIP management for the database cluster.
+
