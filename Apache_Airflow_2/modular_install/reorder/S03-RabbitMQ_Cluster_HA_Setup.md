@@ -2,7 +2,7 @@
 
 ## High Availability Message Queue Cluster for Celery
 
-### Step 3.1: Install RabbitMQ (VM6, VM7, VM8)
+### Step 3.1:  Install RabbitMQ (VM6, VM7, VM8)
 
 **Execute on all three RabbitMQ nodes (rabbit-1, rabbit-2, rabbit-3):**
 ```bash
@@ -502,3 +502,4 @@ This completes the RabbitMQ cluster setup with:
 The message queue infrastructure now provides zero single points of failure and automatic failover capabilities.
 
 **Next Steps**: Once this RabbitMQ cluster setup is complete and verified, proceed to **S04-NFS_Storage_HA_Setup.md** for shared storage configuration.
+
