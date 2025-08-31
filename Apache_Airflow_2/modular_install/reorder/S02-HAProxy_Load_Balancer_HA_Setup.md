@@ -2,7 +2,7 @@
 
 ## High Availability Load Balancer with Keepalived and VIP
 
-### Step 2.1: Install HAProxy and Keepalived (VM1, VM2)
+### Step 2.1:  Install HAProxy and Keepalived (VM1, VM2)
 
 **Execute on both VM1 (haproxy-1) and VM2 (haproxy-2):**
 ```bash
@@ -558,3 +558,4 @@ This completes the HAProxy Load Balancer HA setup with automatic failover capabi
 ✅ **Service Discovery**: Single VIP for all database and future webserver access  
 
 **Next Steps**: Once this load balancer HA setup is complete and verified, proceed to **S03-RabbitMQ_Cluster_HA_Setup.md** for message queue cluster configuration.
+
