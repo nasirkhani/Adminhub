@@ -2,7 +2,7 @@
 
 ## High Availability Shared Storage with Automated Failover
 
-### Step 4.1: Install NFS and Synchronization Tools (VM4, VM5)
+### Step 4.1:  Install NFS and Synchronization Tools (VM4, VM5)
 
 **Execute on both VM4 (nfs-1) and VM5 (nfs-2):**
 ```bash
@@ -880,3 +880,4 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
