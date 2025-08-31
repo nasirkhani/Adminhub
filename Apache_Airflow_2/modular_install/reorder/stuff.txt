@@ -172,7 +172,12 @@ alias spls='sudo systemctl stop lsyncd.service'
 alias rls='sudo systemctl restart lsyncd.service'
 
 
-
+# --- postgresql Aliases ---
+alias jpo='sudo journalctl -u postgresql-16.service -f'
+alias spo='sudo systemctl status postgresql-16.service'
+alias stpo='sudo systemctl start postgresql-16.service'
+alias sppo='sudo systemctl stop postgresql-16.service'
+alias rpo='sudo systemctl restart postgresql-16.service'
 
 
 
