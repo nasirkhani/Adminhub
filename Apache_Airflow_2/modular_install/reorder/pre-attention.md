@@ -1,6 +1,6 @@
 ## **Implementation Instructions for Your Order**
 
-### **S05 (Airflow Installation) - Modifications:**
+### **S05 (Airflow Installation) -  Modifications:**
 
 **1. Use LocalExecutor temporarily:**
 ```ini
