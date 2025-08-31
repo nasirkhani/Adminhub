@@ -2,7 +2,7 @@
 
 ## Apache Airflow 2.9.0 Installation with High Availability Configuration
 
-### Step 5.1: Install Airflow on Scheduler and Webserver Nodes (VM1, VM2, VM3)
+### Step 5.1:  Install Airflow on Scheduler and Webserver Nodes (VM1, VM2, VM3)
 
 **Execute on VM1 (haproxy-1), VM2 (haproxy-2), and VM3 (scheduler-2):**
 ```bash
@@ -960,3 +960,4 @@ This completes the Airflow Core Components installation with:
 All components are now using the HA infrastructure (VIPs, clusters) that was established in previous sections.
 
 **Next Steps**: Once this Airflow Core Components installation is complete and verified, proceed to **S06-Complete_System_Integration_and_Testing.md** for comprehensive testing and validation of the entire distributed HA infrastructure.
+
