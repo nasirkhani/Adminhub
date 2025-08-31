@@ -7,7 +7,7 @@ sudo dnf upgrade -y
 sudo dnf install -y vim curl wget rsync nfs-utils firewalld
 ```
 
-## **VM1 (airflow) - Main Scheduler + Webserver + HAProxy:**
+## **VM1 (airflow) - Main Scheduler + Webserver + HAProxy :**
 ```bash
 sudo dnf install -y haproxy keepalived curl
 sudo dnf install -y python3 python3-pip python3-devel gcc gcc-c++ postgresql-devel
@@ -91,3 +91,4 @@ sudo dnf install -y python3 python3-pip python3-devel gcc gcc-c++ postgresql-dev
 pip3 install "apache-airflow[celery,postgres,crypto]==2.9.0" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.0/constraints-3.9.txt"
 pip3 install paramiko
 ```
+
