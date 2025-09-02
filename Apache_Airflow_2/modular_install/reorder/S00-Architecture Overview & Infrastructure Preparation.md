@@ -112,7 +112,7 @@ sudo dnf update -y
 sudo dnf upgrade -y
 
 # Install common packages
-sudo dnf install -y vim curl wget rsync nfs-utils firewalld
+sudo dnf install -y vim curl wget rsync nfs-utils 
 sudo dnf install -y python3 python3-pip python3-devel
 
 # Disable SELinux for simplified setup
@@ -370,5 +370,6 @@ echo "=== READY FOR NEXT PHASE: Database HA Cluster Setup ==="
 - Network connectivity established
 - SSH key distribution completed  
 - Ready for HA component installation
+
 
 
