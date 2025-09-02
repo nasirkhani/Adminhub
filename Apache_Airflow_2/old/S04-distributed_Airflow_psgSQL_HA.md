@@ -253,6 +253,8 @@ sudo restorecon -Rv /usr/local/bin/etcd
 Start the ETCD service and check its status **on all three nodes (sql1, sql2, and sql3)**:
 
 ```bash
+sudo systemctl daemon-reload
+sudo systemctl enable etcd.service
 sudo systemctl start etcd
 sudo systemctl status etcd
 ```
@@ -963,4 +965,5 @@ You should see `sql1` as the new leader:
 Now `sql2` will become a replica if it was running. If it was stopped during the switchover, it will come up as a replica once its Patroni service is started.
 
 This completes the customized Patroni setup on your Rocky Linux 9 VMs.
+
 
