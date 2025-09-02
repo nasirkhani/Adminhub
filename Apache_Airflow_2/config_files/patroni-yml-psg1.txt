@@ -1,5 +1,4 @@
-
-[rocky@sql1 ~]$ cat /usr/patroni/conf/patroni.yml
+#[rocky@sql1 ~]$ cat /usr/patroni/conf/patroni.yml
 scope: postgres
 namespace: HuzefasPatroni
 name: sql1
