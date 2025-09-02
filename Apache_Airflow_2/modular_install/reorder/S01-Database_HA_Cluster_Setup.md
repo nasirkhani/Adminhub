@@ -34,8 +34,8 @@ sudo chmod 0775 /var/lib/etcd/
 
 # Install Patroni
 sudo dnf install -y python3 python3-pip python3-devel gcc gcc-c++
-pip3 install psycopg2-binary
-pip3 install patroni[etcd,consul]
+sudo pip3 install psycopg2-binary
+sudo pip3 install patroni[etcd,consul]
 ```
 
 ### Step 1.2: Configure etcd Cluster
@@ -586,4 +586,5 @@ This completes the PostgreSQL High Availability cluster setup with:
 ✅ **Health Monitoring**: REST API endpoints for cluster monitoring  
 
 **Next Steps**: Proceed to **S02-HAProxy_Load_Balancer_HA_Setup.md** to configure load balancing and VIP management for the database cluster.
+
 
