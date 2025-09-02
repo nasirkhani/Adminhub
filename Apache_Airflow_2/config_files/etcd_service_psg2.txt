@@ -1,0 +1,25 @@
+[Unit]
+Description=etcd key-value store
+Documentation=https://github.com/etcd-io/etcd
+After=network.target
+
+[Service]
+User=etcd
+Type=notify
+Environment=ETCD_DATA_DIR=/var/lib/etcd
+Environment=ETCD_NAME=sql2
+Environment=ETCD_LISTEN_PEER_URLS="http://192.168.83.147:2380,http://127.0.0.1:7001"
+Environment=ETCD_LISTEN_CLIENT_URLS="http://192.168.83.147:2379, http://127.0.0.1:2379"
+Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.83.147:2380"
+Environment=ETCD_INITIAL_CLUSTER="sql1=http://192.168.83.148:2380,sql2=http://192.168.83.147:2380,sql3=http://192.168.83.149:2380"
+Environment=ETCD_ADVERTISE_CLIENT_URLS="http://192.168.83.147:2379"
+Environment=ETCD_INITIAL_CLUSTER_TOKEN="etcdcluster"
+Environment=ETCD_INITIAL_CLUSTER_STATE="new"
+ExecStart=/usr/local/bin/etcd \
+--enable-v2=true
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target
