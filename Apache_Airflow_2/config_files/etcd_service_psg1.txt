@@ -1,5 +1,5 @@
 
-[rocky@sql1 ~]$ cat /etc/systemd/system/etcd.service
+#[rocky@sql1 ~]$ cat /etc/systemd/system/etcd.service
 [Unit]
 Description=etcd key-value store
 Documentation=https://github.com/etcd-io/etcd
