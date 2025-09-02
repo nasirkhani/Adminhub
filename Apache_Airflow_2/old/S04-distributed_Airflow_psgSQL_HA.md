@@ -284,8 +284,8 @@ sudo ln -s /usr/pgsql-16/bin /usr/sbin
 ```bash
 curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o /tmp/get-pip.py -k
 python3 /tmp/get-pip.py
-pip install psycopg2-binary
-pip install patroni[etcd,consul]
+sudo pip install psycopg2-binary
+sudo pip install patroni[etcd,consul]
 ```
 
 -----
@@ -963,3 +963,4 @@ You should see `sql1` as the new leader:
 Now `sql2` will become a replica if it was running. If it was stopped during the switchover, it will come up as a replica once its Patroni service is started.
 
 This completes the customized Patroni setup on your Rocky Linux 9 VMs.
+
