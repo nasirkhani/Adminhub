@@ -6,36 +6,74 @@
 
 **Execute on all three database nodes (postgresql-1, postgresql-2, postgresql-3):**
 
+### **3. Setup ETCD on sql1, sql2, and sql3**
+
+First, download ETCD binaries, then copy them to the binary location. Replace `v3.4.34` with the latest stable release from [etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
+
+**On sql1, sql2, and sql3:**
+
 ```bash
-# Install PostgreSQL 16
-sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-sudo dnf -qy module disable postgresql
-sudo dnf install -y postgresql16-server postgresql16-contrib
-
-# Create symbolic link for Patroni
-sudo ln -s /usr/pgsql-16/bin /usr/sbin
-
-# Install etcd
 ETCD_VER=v3.4.34
-DOWNLOAD_URL=https://storage.googleapis.com/etcd
+GOOGLE_URL=https://storage.googleapis.com/etcd
+GITHUB_URL=https://github.com/etcd-io/etcd/releases/download
+DOWNLOAD_URL=${GOOGLE_URL}
+
 rm -f /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
 rm -rf /tmp/etcd-download-test && mkdir -p /tmp/etcd-download-test
 curl -L ${DOWNLOAD_URL}/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -o /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
 tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /tmp/etcd-download-test --strip-components=1
-sudo mv /tmp/etcd-download-test/etcd* /usr/local/bin
+rm -f /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
 
-# Create etcd user and directories
-sudo groupadd --system etcd
-sudo useradd -s /sbin/nologin --system -g etcd etcd
+/tmp/etcd-download-test/etcd --version
+/tmp/etcd-download-test/etcdctl version
+```
+
+You should see output similar to this (version might differ):
+
+```
+etcd Version: 3.4.34
+Git SHA: c123b3ea3
+Go Version: go1.22.7
+Go OS/Arch: linux/amd64
+etcdctl version: 3.4.34
+API version: 3.4
+```
+
+Now, move the binaries to `/usr/local/bin`:
+
+```bash
+cd /tmp/etcd-download-test/
+sudo mv etcd* /usr/local/bin
+```
+
+Verify ETCD commands after moving binaries:
+
+```bash
+etcd --version
+etcdctl version
+```
+
+#### **Configure ETCD System Service**
+
+Create directories for the library and config file:
+
+```bash
 sudo mkdir -p /var/lib/etcd/
 sudo mkdir /etc/etcd
+```
+
+Create an ETCD system user:
+
+```bash
+sudo groupadd --system etcd
+sudo useradd -s /sbin/nologin --system -g etcd etcd
+```
+
+Change ownership and permissions:
+
+```bash
 sudo chown -R etcd:etcd /var/lib/etcd/
 sudo chmod 0775 /var/lib/etcd/
-
-# Install Patroni
-sudo dnf install -y python3 python3-pip python3-devel gcc gcc-c++
-sudo pip3 install psycopg2-binary
-sudo pip3 install patroni[etcd,consul]
 ```
 
 ### Step 1.2: Configure etcd Cluster
@@ -586,5 +624,6 @@ This completes the PostgreSQL High Availability cluster setup with:
 ✅ **Health Monitoring**: REST API endpoints for cluster monitoring  
 
 **Next Steps**: Proceed to **S02-HAProxy_Load_Balancer_HA_Setup.md** to configure load balancing and VIP management for the database cluster.
+
 
 
