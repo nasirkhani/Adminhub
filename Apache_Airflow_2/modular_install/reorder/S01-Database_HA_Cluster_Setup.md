@@ -196,6 +196,38 @@ sudo systemctl start etcd
 sudo systemctl status etcd
 ```
 
+
+### **4. Download and Install PostgreSQL Server 16 on sql1, sql2, and sql3**
+
+**On sql1, sql2, and sql3:**
+
+```bash
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sudo dnf -qy module disable postgresql
+sudo dnf install -y postgresql16-server postgresql16-contrib
+```
+
+After installing the PostgreSQL Server packages, create a symbolic link of PostgreSQL binaries to `/usr/sbin` for Patroni to work correctly.
+
+```bash
+sudo ln -s /usr/pgsql-16/bin /usr/sbin
+```
+
+-----
+
+### **5. Download Patroni on sql1, sql2, and sql3**
+
+**On sql1, sql2, and sql3:**
+
+```bash
+curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o /tmp/get-pip.py -k
+python3 /tmp/get-pip.py
+sudo pip install psycopg2-binary
+sudo pip install patroni[etcd,consul]
+```
+
+
+
 ### Step 1.3: Configure Patroni SSL Certificates
 
 **On VM9 (postgresql-1):**
@@ -624,6 +656,7 @@ This completes the PostgreSQL High Availability cluster setup with:
 ✅ **Health Monitoring**: REST API endpoints for cluster monitoring  
 
 **Next Steps**: Proceed to **S02-HAProxy_Load_Balancer_HA_Setup.md** to configure load balancing and VIP management for the database cluster.
+
 
 
 
