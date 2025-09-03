@@ -6,6 +6,18 @@
 
 **Execute on all three database nodes (postgresql-1, postgresql-2, postgresql-3):**
 
+### Step 1.6: Configure Firewall for Database Cluster
+
+**On VM9, VM10, VM11:**
+```bash
+sudo firewall-cmd --permanent --add-port=5432/tcp   # PostgreSQL
+sudo firewall-cmd --permanent --add-port=8008/tcp   # Patroni REST API
+sudo firewall-cmd --permanent --add-port=2379/tcp   # etcd client
+sudo firewall-cmd --permanent --add-port=2380/tcp   # etcd peer
+sudo firewall-cmd --reload
+```
+
+
 ### **3. Setup ETCD on sql1, sql2, and sql3**
 
 First, download ETCD binaries, then copy them to the binary location. Replace `v3.4.34` with the latest stable release from [etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
@@ -553,16 +565,6 @@ sudo systemctl start patroni
 sudo systemctl status patroni
 ```
 
-### Step 1.6: Configure Firewall for Database Cluster
-
-**On VM9, VM10, VM11:**
-```bash
-sudo firewall-cmd --permanent --add-port=5432/tcp   # PostgreSQL
-sudo firewall-cmd --permanent --add-port=8008/tcp   # Patroni REST API
-sudo firewall-cmd --permanent --add-port=2379/tcp   # etcd client
-sudo firewall-cmd --permanent --add-port=2380/tcp   # etcd peer
-sudo firewall-cmd --reload
-```
 
 ### Step 1.7: Verify Database Cluster Setup
 
@@ -656,6 +658,7 @@ This completes the PostgreSQL High Availability cluster setup with:
 ✅ **Health Monitoring**: REST API endpoints for cluster monitoring  
 
 **Next Steps**: Proceed to **S02-HAProxy_Load_Balancer_HA_Setup.md** to configure load balancing and VIP management for the database cluster.
+
 
 
 
