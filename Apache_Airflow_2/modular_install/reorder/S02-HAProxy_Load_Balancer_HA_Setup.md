@@ -18,6 +18,40 @@ sudo firewall-cmd --permanent --add-protocol=vrrp   # Keepalived VRRP
 sudo firewall-cmd --reload
 ```
 
+
+
+#### **Create Systemd Configuration File for HAProxy**
+
+**On airflow:**
+
+```bash
+sudo vi /etc/systemd/system/multi-user.target.wants/haproxy.service
+```
+
+Add the following content:
+
+```
+[Unit]
+Description=HAProxy Load Balancer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/haproxy
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" "CFGDIR=/etc/haproxy/conf.d"
+ExecStartPre=/usr/sbin/haproxy -f $CONFIG -f $CFGDIR -c -q $OPTIONS
+ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -f $CFGDIR -p $PIDFILE $OPTIONS
+ExecReload=/usr/sbin/haproxy -f $CONFIG -f $CFGDIR -c -q $OPTIONS
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=mixed
+SuccessExitStatus=143
+Type=notify
+
+[Install]
+WantedBy=multi-user.target
+```
+
+
 ### Step 2.2: Configure HAProxy for PostgreSQL and Webserver Load Balancing
 
 **⚠️ IMPORTANT: Replace `<POSTGRESQL_*_IP>` and `<HAPROXY_*_IP>` placeholders with your actual VM IP addresses.**
@@ -558,4 +592,5 @@ This completes the HAProxy Load Balancer HA setup with automatic failover capabi
 ✅ **Service Discovery**: Single VIP for all database and future webserver access  
 
 **Next Steps**: Once this load balancer HA setup is complete and verified, proceed to **S03-RabbitMQ_Cluster_HA_Setup.md** for message queue cluster configuration.
+
 
