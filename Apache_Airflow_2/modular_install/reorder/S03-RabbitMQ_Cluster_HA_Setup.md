@@ -216,6 +216,9 @@ echo "=== RabbitMQ Cluster Status ==="
 echo "VM6 (rabbit-1):"
 sudo rabbitmqctl cluster_status
 
+
+# access RabbitMQ web UI at http://<your_vm_ip>:15672 to manage queues.
+
 echo "VM7 (rabbit-2):"
 ssh rocky@rabbit-2 "sudo rabbitmqctl cluster_status"
 
@@ -502,5 +505,6 @@ This completes the RabbitMQ cluster setup with:
 The message queue infrastructure now provides zero single points of failure and automatic failover capabilities.
 
 **Next Steps**: Once this RabbitMQ cluster setup is complete and verified, proceed to **S04-NFS_Storage_HA_Setup.md** for shared storage configuration.
+
 
 
