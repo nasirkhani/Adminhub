@@ -153,7 +153,7 @@ sudo rabbitmqctl list_users
 sudo rabbitmqctl list_permissions -p airflow_host
 ```
 
-### Step 3.5: Configure RabbitMQ for Production (this is arbitrary section and not tested)
+### Step 3.5: Configure RabbitMQ for Production (this is arbitrary section and did NOT approved and tested before)
 
 **⚠️ IMPORTANT: Replace `<RABBIT_*_IP>` placeholders with your actual RabbitMQ VM IP addresses.**
 
@@ -505,6 +505,7 @@ This completes the RabbitMQ cluster setup with:
 The message queue infrastructure now provides zero single points of failure and automatic failover capabilities.
 
 **Next Steps**: Once this RabbitMQ cluster setup is complete and verified, proceed to **S04-NFS_Storage_HA_Setup.md** for shared storage configuration.
+
 
 
 
