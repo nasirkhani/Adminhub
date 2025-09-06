@@ -143,7 +143,7 @@ sudo rabbitmqctl cluster_status
 sudo rabbitmqctl set_policy ha-all ".*" '{"ha-mode":"all","ha-sync-mode":"automatic"}' --vhost airflow_host
 
 # Set quorum queue policy for better performance (RabbitMQ 3.8+)
-sudo rabbitmqctl set_policy quorum-all ".*" '{"queue-mode":"quorum","queue-leader-locator":"balanced"}' --vhost airflow_host --priority 1
+# sudo rabbitmqctl set_policy quorum-all ".*" '{"queue-mode":"quorum","queue-leader-locator":"balanced"}' --vhost airflow_host --priority 1
 
 # Verify policies are applied
 sudo rabbitmqctl list_policies --vhost airflow_host
@@ -502,4 +502,5 @@ This completes the RabbitMQ cluster setup with:
 The message queue infrastructure now provides zero single points of failure and automatic failover capabilities.
 
 **Next Steps**: Once this RabbitMQ cluster setup is complete and verified, proceed to **S04-NFS_Storage_HA_Setup.md** for shared storage configuration.
+
 
