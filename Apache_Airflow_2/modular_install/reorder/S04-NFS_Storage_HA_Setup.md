@@ -58,6 +58,15 @@ sudo ssh-copy-id -i /root/.ssh/id_rsa.pub root@$NFS_2_IP
 sudo ssh-copy-id -i /root/.ssh/id_rsa.pub root@$NFS_1_IP
 ```
 
+## or - make it by hand in both vms
+
+```bash
+cat <<EOF | sudo tee -a /root/.ssh/authorized_keys
+<your_public_key_of_another_vm>
+EOF
+```
+
+
 **Verify passwordless SSH:**
 ```bash
 # Test from VM4 (nfs-1) to VM5 (nfs-2)
@@ -880,4 +889,5 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
 
