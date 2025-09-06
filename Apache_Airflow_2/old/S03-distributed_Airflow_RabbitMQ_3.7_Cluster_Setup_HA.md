@@ -54,11 +54,12 @@ wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.13.7/rabbi
 sudo rpm --import https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
 sudo dnf install -y socat logrotate
 sudo dnf install -y ./rabbitmq-server-3.13.7-1.el8.noarch.rpm
+sudo systemctl enable rabbitmq-server
 
 ```
 
 
-### OR
+## OR
 #### **Step 2.1: Create RabbitMQ 3.x Repository**
 
 ```bash
@@ -284,5 +285,6 @@ sudo systemctl start rabbitmq-server  # On mq1
 This approach gives you **production-ready HA** without the bleeding-edge complexity. Perfect for your financial card processing workflow!
 
 Start with **Phase 1** and let me know when you're ready for the next phase.
+
 
 
