@@ -253,6 +253,9 @@ log_msg "=== VM4 (nfs-1) BECOMING BACKUP ==="
 log_msg "Stopping lsyncd..."
 systemctl stop lsyncd
 
+log_msg "Stopping DAG processor..."
+systemctl stop airflow-dag-processor
+
 log_msg "Stopping NFS services..."
 systemctl stop nfs-server
 
@@ -894,6 +897,7 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
 
 
 
