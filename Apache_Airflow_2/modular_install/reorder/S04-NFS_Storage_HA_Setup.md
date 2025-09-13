@@ -181,6 +181,11 @@ log_msg "Starting NFS services..."
 systemctl start rpcbind
 systemctl start nfs-server
 
+
+# Start DAG processor
+log_msg "Starting DAG processor..."
+systemctl start airflow-dag-processor
+
 # Configure lsyncd for VM4 → VM5 forward sync
 log_msg "Configuring lsyncd for forward sync (nfs-1 → nfs-2)..."
 cat > /etc/lsyncd.conf << 'LSYNCD_EOF'
@@ -889,5 +894,6 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
 
 
