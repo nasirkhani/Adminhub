@@ -28,10 +28,11 @@ sudo chmod +x /home/rocky/.local/bin/airflow
 sudo chmod 755 /home/rocky /home/rocky/.local /home/rocky/.local/bin
 
 # Create airflow directories
-mkdir -p ~/airflow/logs ~/airflow/plugins ~/airflow/config ~/airflow/utils
+mkdir -p  ~/airflow/plugins ~/airflow/config ~/airflow/utils
 
 # Create symlink to NFS mounted DAGs
 ln -s /mnt/airflow-dags ~/airflow/dags
+ln -s /mnt/airflow-logs ~/airflow/logs
 
 # Create utility modules for DAG development
 touch ~/airflow/__init__.py ~/airflow/config/__init__.py ~/airflow/utils/__init__.py
@@ -258,8 +259,9 @@ sudo chmod +x /home/rocky/.local/bin/airflow
 sudo chmod 755 /home/rocky /home/rocky/.local /home/rocky/.local/bin
 
 # Create directories and symlinks
-mkdir -p ~/airflow/logs ~/airflow/plugins ~/airflow/config ~/airflow/utils
+mkdir -p ~/airflow/plugins ~/airflow/config ~/airflow/utils
 ln -s /mnt/airflow-dags ~/airflow/dags
+ln -s /mnt/airflow-logs ~/airflow/logs
 
 # Copy configuration from VM1 (haproxy-1)
 scp rocky@haproxy-1:/home/rocky/airflow/airflow.cfg ~/airflow/
@@ -300,7 +302,9 @@ sudo chmod 755 /home/rocky /home/rocky/.local /home/rocky/.local/bin
 
 # Create symlink to local DAGs directory
 ln -s /srv/airflow/dags /home/rocky/airflow/dags
-mkdir -p ~/airflow/logs ~/airflow/plugins ~/airflow/config ~/airflow/utils
+ln -s /srv/airflow/logs /home/rocky/airflow/logs
+
+mkdir -p ~/airflow/plugins ~/airflow/config ~/airflow/utils
 
 # Copy configuration from VM1 (haproxy-1)
 scp rocky@haproxy-1:/home/rocky/airflow/airflow.cfg ~/airflow/
@@ -960,4 +964,5 @@ This completes the Airflow Core Components installation with:
 All components are now using the HA infrastructure (VIPs, clusters) that was established in previous sections.
 
 **Next Steps**: Once this Airflow Core Components installation is complete and verified, proceed to **S06-Complete_System_Integration_and_Testing.md** for comprehensive testing and validation of the entire distributed HA infrastructure.
+
 
