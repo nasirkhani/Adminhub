@@ -541,12 +541,17 @@ sudo systemctl status keepalived --no-pager
 sudo mkdir -p /mnt/airflow-dags
 # REPLACE_WITH_YOUR_NFS_VIP
 sudo mount -t nfs <NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags
+sudo mount -t nfs <NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs
+
 
 # Add to fstab for persistence
 echo "<NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "<NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 # Verify mount
 ls -la /mnt/airflow-dags/ && echo "VM1 NFS mount: SUCCESS"
+ls -la /mnt/airflow-logs/ && echo "VM1 NFS mount: SUCCESS"
+
 ```
 
 **On VM2 (haproxy-2):**
@@ -555,12 +560,16 @@ ls -la /mnt/airflow-dags/ && echo "VM1 NFS mount: SUCCESS"
 sudo mkdir -p /mnt/airflow-dags
 # REPLACE_WITH_YOUR_NFS_VIP
 sudo mount -t nfs <NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags
+sudo mount -t nfs <NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs
 
 # Add to fstab for persistence
 echo "<NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "<NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 # Verify mount
 ls -la /mnt/airflow-dags/ && echo "VM2 NFS mount: SUCCESS"
+ls -la /mnt/airflow-logs/ && echo "VM2 NFS mount: SUCCESS"
+
 ```
 
 **On VM3 (scheduler-2):**
@@ -569,12 +578,16 @@ ls -la /mnt/airflow-dags/ && echo "VM2 NFS mount: SUCCESS"
 sudo mkdir -p /mnt/airflow-dags
 # REPLACE_WITH_YOUR_NFS_VIP
 sudo mount -t nfs <NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags
+sudo mount -t nfs <NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs
 
 # Add to fstab for persistence
 echo "<NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "<NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 # Verify mount
 ls -la /mnt/airflow-dags/ && echo "VM3 NFS mount: SUCCESS"
+ls -la /mnt/airflow-logs/ && echo "VM3 NFS mount: SUCCESS"
+
 ```
 
 **On VM12 (celery-1):**
@@ -583,15 +596,19 @@ ls -la /mnt/airflow-dags/ && echo "VM3 NFS mount: SUCCESS"
 sudo mkdir -p /mnt/airflow-dags
 # REPLACE_WITH_YOUR_NFS_VIP
 sudo mount -t nfs <NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags
+sudo mount -t nfs <NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs
 
 # Add to fstab for persistence
 echo "<NFS_VIP>:/srv/airflow/dags /mnt/airflow-dags nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "<NFS_VIP>:/srv/airflow/logs /mnt/airflow-logs nfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 # Verify mount
 ls -la /mnt/airflow-dags/ && echo "VM12 NFS mount: SUCCESS"
+ls -la /mnt/airflow-logs/ && echo "VM12 NFS mount: SUCCESS"
+
 ```
 
-**🔧 Automated NFS Client Configuration Script:**
+**🔧 Automated NFS Client Configuration Script: (this dosent conclude /mnt/airflow-logs and is inmoplete)**
 ```bash
 # Create script to configure NFS clients with your VIP
 # CUSTOMIZE this value:
@@ -904,6 +921,7 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
 
 
 
