@@ -78,3 +78,13 @@ host replication replicator 192.168.230.146/32 md5  # OLD postgresql-3
 host replication replicator 10.101.20.204/32 md5    # NEW postgresql-1
 host replication replicator 10.101.20.166/32 md5    # NEW postgresql-2
 host replication replicator 10.101.20.137/32 md5    # NEW postgresql-3
+
+# health check 
+etcdctl --endpoints=10.101.20.204:2379 endpoint health
+etcdctl --endpoints=10.101.20.204:2379 member list
+etcdctl --endpoints=10.101.20.204:2379,10.101.20.166:2379,10.101.20.137:2379 endpoint health
+
+
+# test messages 
+etcdctl --endpoints=10.101.20.204:2379 put test "hello"
+etcdctl --endpoints=10.101.20.166:2379 get test
