@@ -62,3 +62,19 @@ sudo chmod 0775 /var/lib/etcd/
 
 Then continue with Step 1.2 in your guideline using the new IP addresses (10.101.20.204, 10.101.20.166, 10.101.20.137).
 
+
+
+
+
+# On postgresql-1, (and 2, 3) edit the file
+sudo nano /var/lib/pgsql/16/data/pg_hba.conf
+
+# Change these lines:
+host replication replicator 192.168.230.148/32 md5  # OLD postgresql-1
+host replication replicator 192.168.230.145/32 md5  # OLD postgresql-2
+host replication replicator 192.168.230.146/32 md5  # OLD postgresql-3
+
+# To these new IP addresses:
+host replication replicator 10.101.20.204/32 md5    # NEW postgresql-1
+host replication replicator 10.101.20.166/32 md5    # NEW postgresql-2
+host replication replicator 10.101.20.137/32 md5    # NEW postgresql-3
