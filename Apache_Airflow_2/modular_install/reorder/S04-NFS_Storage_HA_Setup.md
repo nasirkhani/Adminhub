@@ -129,6 +129,12 @@ if ! systemctl is-active --quiet nfs-server; then
     exit 1
 fi
 
+# Check DAG processor is running
+if ! systemctl is-active --quiet airflow-dag-processor; then
+    log_msg "HEALTH CHECK FAILED: DAG processor not running"
+    exit 1
+fi
+
 # Check lsyncd is running
 if ! systemctl is-active --quiet lsyncd; then
     log_msg "HEALTH CHECK FAILED: lsyncd not running"
@@ -921,6 +927,7 @@ This completes the NFS Storage HA setup with:
 The shared storage infrastructure now provides zero single points of failure with automatic failover and data synchronization.
 
 **Next Steps**: Once this NFS Storage HA setup is complete and verified, proceed to **S05-Airflow_Core_Components_Installation.md** for Apache Airflow installation and configuration.
+
 
 
 
