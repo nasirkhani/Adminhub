@@ -44,21 +44,6 @@ ls -la /mnt/airflow-logs/
 # (The mounts should timeout gracefully instead of hanging)
 ```
 
-### **Additional Resilience Option:**
-If you want even more resilience, consider adding a **local fallback** in your Airflow configuration:
-
-**In `~/airflow/airflow.cfg`**, you could also set:
-```ini
-[core]
-dags_folder = /mnt/airflow-dags
-# Fallback local directory if NFS unavailable
-# dags_folder = /home/rocky/airflow/dags_local
-
-[logging]  
-base_log_folder = /mnt/airflow-logs
-# Fallback local directory if NFS unavailable
-# base_log_folder = /home/rocky/airflow/logs_local
-```
 
 This way, if NFS becomes unavailable:
 1. Clients won't hang (due to `soft` mount)
