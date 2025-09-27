@@ -2,7 +2,7 @@
 
 ## **1. NFS Mount Options - PREVENT CLIENT HANGS**
 
-You're absolutely correct! The current mount options can cause client halts. Replace the fstab entries with resilient NFS options:
+The previous mount options can cause client halts. Replace the fstab entries with resilient NFS options:
 
 ### **Update /etc/fstab on ALL client VMs**
 **VMs**: haproxy-1, haproxy-2, scheduler-2, celery-1
