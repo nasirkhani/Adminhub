@@ -105,7 +105,7 @@ done
 
 ---
 
-**automated SSH host key checking** 
+# automated SSH host key checking (Problem: SSH Host Key Prompts)
 
 By default, SSH asks you to confirm the first time you connect to a new host (to prevent MITM attacks).
 If you want automation to **always accept and skip the prompt**, you need:
@@ -141,10 +141,14 @@ Edit/create `~/.ssh/config` on your control node (monitoring or haproxy-1):
 ```ssh-config
 Host *
     User rocky
-    IdentityFile ~/.ssh/id_ed25519_monitoring
+    IdentityFile ~/.ssh/id_ed25519
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
+    LogLevel QUIET
 ```
+
+LogLevel QUIET → suppresses that warning and other noise.
+UserKnownHostsFile /dev/null → stops saving host keys, so no "Permanently added..." message.
 
 Now you can just run:
 
@@ -165,7 +169,7 @@ Got it ✅ — here’s a clear, self-contained explanation you can put in your 
 ---
 
 
-# Problem: SSH Host Key Prompts
+### 🔹 Method 3 : Preload Host Keys in ~/.ssh/known_hosts
 
 When connecting to a new server with SSH for the first time, you often see a message like:
 
