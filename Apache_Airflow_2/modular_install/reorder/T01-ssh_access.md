@@ -123,7 +123,7 @@ Add:
 Example:
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_monitoring \
+ssh -i ~/.ssh/id_ed25519 \
     -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
     rocky@rabbit-1
