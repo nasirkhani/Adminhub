@@ -160,4 +160,73 @@ And it will **never prompt** again.
 
 ---
 
+Got it ✅ — here’s a clear, self-contained explanation you can put in your booklet:
+
+---
+
+
+# Problem: SSH Host Key Prompts
+
+When connecting to a new server with SSH for the first time, you often see a message like:
+
+```
+The authenticity of host 'postgresql-1 (10.101.20.204)' can't be established.
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+
+This happens because SSH does not recognize the server’s **host key** yet. Once you answer `yes`, the server’s key is stored in `~/.ssh/known_hosts`. On later connections, SSH checks this file to verify the server’s identity.
+
+The issue:
+
+* If you only have **IPs** in `known_hosts`, connecting via **hostname** (e.g. `ssh postgresql-1`) will still ask for confirmation.
+* If you only have **hostnames**, connecting via raw **IP** (e.g. `ssh 10.101.20.204`) will still ask.
+
+---
+
+### Solution: Preload Host Keys for Both Hostnames and IPs
+
+You can automatically gather host keys with `ssh-keyscan` and store them in your `known_hosts`. To cover both ways of connecting, you must scan **both hostnames and IP addresses**.
+
+Example:
+
+```bash
+ssh-keyscan -t ed25519 \
+  postgresql-1 10.101.20.204 \
+  postgresql-2 10.101.20.166 \
+  postgresql-3 10.101.20.137 \
+  rabbit-1     10.101.20.205 \
+  rabbit-2     10.101.20.147 \
+  rabbit-3     10.101.20.206 \
+  haproxy-1    10.101.20.202 \
+  haproxy-2    10.101.20.146 \
+  celery-1     10.101.20.199 \
+  celery-2     10.101.20.200 \
+  nfs-1        10.101.20.165 \
+  nfs-2        10.101.20.203 \
+  scheduler-1  10.101.20.132 \
+  monitoring   10.101.20.201 \
+  ftp          10.101.20.164 \
+  informix     10.101.20.159 \
+  ibmmq        10.101.20.135 \
+  tcp          10.101.20.143 \
+  sw           10.101.20.131 \
+  > ~/.ssh/known_hosts
+```
+
+---
+
+### Result
+
+* `ssh postgresql-1` → works without prompt.
+* `ssh 10.101.20.204` → also works without prompt.
+* No more “Are you sure you want to continue connecting?” messages across your cluster.
+
+---
+
+👉 This method is ideal for automation (scripts, Ansible, bulk operations), because it **pre-trusts** all your servers by collecting their keys in advance.
+
+---
+
+
+
 
