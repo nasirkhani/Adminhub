@@ -1,3 +1,5 @@
+# option 1 : set up HAproxy-1 to access all other vms. (use option 2 for more automated if you can)
+
 * Use **`HAproxy-1` (10.101.20.202)** as the *jump host/controller*.
 * Ensure it has **passwordless SSH key access** to all other VMs.
 * Run a command (`touch bulk_test_file_create.txt`) in `/home/rocky` across all machines.
