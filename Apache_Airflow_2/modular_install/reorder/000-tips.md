@@ -3,7 +3,6 @@
 * Run a command (`touch bulk_test_file_create.txt`) in `/home/rocky` across all machines.
 
 ---
-
 ### 1. On **HAproxy-1** generate SSH keypair (if not already done)
 
 ```bash
@@ -65,5 +64,43 @@ for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
 done
 ```
 
+# option 2 : more automated
 ---
+
+
+By default, `ssh-copy-id` is interactive:
+
+* First time → asks “Are you sure you want to continue connecting (yes/no)?”
+* Then → asks for the password.
+
+Since you have **the same password (`111`) on all nodes**, you can fully automate it with **`sshpass`**.
+
+---
+
+### 🔹 1. Install `sshpass` (on haproxy-1)
+
+```bash
+sudo dnf install -y sshpass
+```
+
+---
+
+### 🔹 2. Run automated loop
+
+```bash
+for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
+            10.101.20.202 10.101.20.165 10.101.20.203 \
+            10.101.20.204 10.101.20.166 10.101.20.137 \
+            10.101.20.205 10.101.20.147 10.101.20.206 \
+            10.101.20.132; do
+    echo ">>> Copying key to $host"
+    sshpass -p '111' ssh-copy-id -i ~/.ssh/id_ed25519_monitoring.pub -o StrictHostKeyChecking=no rocky@$host
+done
+```
+
+* `sshpass -p '111'` → feeds password automatically.
+* `-o StrictHostKeyChecking=no` → auto-accepts the first-time “yes/no” prompt.
+
+---
+
 
