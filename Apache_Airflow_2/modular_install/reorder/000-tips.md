@@ -1,14 +1,14 @@
-# option 1 : set up HAproxy-1 to access all other vms. (use option 2 for more automated if you can)
+# option 1 : set up monitoring to access all other vms. (use option 2 for more automated if you can)
 
-* Use **`HAproxy-1` (10.101.20.202)** as the *jump host/controller*.
+* Use **`monitoring` (10.101.20.201)** as the *jump host/controller*.
 * Ensure it has **passwordless SSH key access** to all other VMs.
 * Run a command (`touch bulk_test_file_create.txt`) in `/home/rocky` across all machines.
 
 ---
-### 1. On **HAproxy-1** generate SSH keypair (if not already done)
+### 1. On **monitoring** generate SSH keypair (if not already done)
 
 ```bash
-ssh rocky@10.101.20.202
+ssh rocky@10.101.20.201
 ssh-keygen -t ed25519 -C "bulk-ops" -f ~/.ssh/id_ed25519
 ```
 
@@ -22,7 +22,7 @@ From `HAproxy-1`:
 
 ```bash
 for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
-            10.101.20.201 10.101.20.165 10.101.20.203 \
+            10.101.20.202 10.101.20.165 10.101.20.203 \
             10.101.20.204 10.101.20.166 10.101.20.137 \
             10.101.20.205 10.101.20.147 10.101.20.206 \
             10.101.20.132 10.101.20.159 10.101.20.135 \
@@ -37,11 +37,11 @@ done
 
 ### 3. Run the bulk command
 
-Now from `HAproxy-1`:
+Now from `monitoring`:
 
 ```bash
 for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
-            10.101.20.201 10.101.20.165 10.101.20.203 \
+            10.101.20.202 10.101.20.165 10.101.20.203 \
             10.101.20.204 10.101.20.166 10.101.20.137 \
             10.101.20.205 10.101.20.147 10.101.20.206 \
             10.101.20.132 10.101.20.159 10.101.20.135 \
@@ -57,7 +57,7 @@ done
 
 ```bash
 for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
-            10.101.20.201 10.101.20.165 10.101.20.203 \
+            10.101.20.202 10.101.20.165 10.101.20.203 \
             10.101.20.204 10.101.20.166 10.101.20.137 \
             10.101.20.205 10.101.20.147 10.101.20.206 \
             10.101.20.132 10.101.20.159 10.101.20.135 \
