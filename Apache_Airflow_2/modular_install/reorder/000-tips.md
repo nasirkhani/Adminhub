@@ -105,4 +105,59 @@ done
 
 ---
 
+**automated SSH host key checking** 
+
+By default, SSH asks you to confirm the first time you connect to a new host (to prevent MITM attacks).
+If you want automation to **always accept and skip the prompt**, you need:
+
+---
+
+### 🔹 Method 1: One-shot (command line option)
+
+Add:
+
+```bash
+-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+```
+
+Example:
+
+```bash
+ssh -i ~/.ssh/id_ed25519_monitoring \
+    -o StrictHostKeyChecking=no \
+    -o UserKnownHostsFile=/dev/null \
+    rocky@rabbit-1
+```
+
+* `StrictHostKeyChecking=no` → auto-accepts new host keys.
+* `UserKnownHostsFile=/dev/null` → prevents writing host keys into `~/.ssh/known_hosts` (so you don’t get duplicate/warning messages).
+
+---
+
+### 🔹 Method 2: Permanent (in `~/.ssh/config`)
+
+Edit/create `~/.ssh/config` on your control node (monitoring or haproxy-1):
+
+```ssh-config
+Host *
+    User rocky
+    IdentityFile ~/.ssh/id_ed25519_monitoring
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+```
+
+Now you can just run:
+
+```bash
+ssh rabbit-1
+```
+
+And it will **never prompt** again.
+
+---
+
+⚠️ Note: this disables host key verification → good for automation in a trusted private network, but risky if machines are exposed to the internet.
+
+---
+
 
