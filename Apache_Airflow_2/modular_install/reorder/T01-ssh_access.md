@@ -147,8 +147,8 @@ Host *
     LogLevel QUIET
 ```
 
-LogLevel QUIET → suppresses that warning and other noise.
-UserKnownHostsFile /dev/null → stops saving host keys, so no "Permanently added..." message.
+LogLevel QUIET → suppresses that warning and other noise.    
+UserKnownHostsFile /dev/null → stops saving host keys, so no "Permanently added..." message.   
 
 Now you can just run:
 
