@@ -79,7 +79,7 @@ Since you have **the same password (`111`) on all nodes**, you can fully automat
 
 ---
 
-### 🔹 1. Install `sshpass` (on haproxy-1)
+### 🔹 1. Install `sshpass` (on monitoring)
 
 ```bash
 sudo dnf install -y sshpass
@@ -96,7 +96,7 @@ for host in 10.101.20.199 10.101.20.200 10.101.20.164 10.101.20.146 \
             10.101.20.205 10.101.20.147 10.101.20.206 \
             10.101.20.132; do
     echo ">>> Copying key to $host"
-    sshpass -p '111' ssh-copy-id -i ~/.ssh/id_ed25519_monitoring.pub -o StrictHostKeyChecking=no rocky@$host
+    sshpass -p '111' ssh-copy-id -i ~/.ssh/id_ed25519.pub -o StrictHostKeyChecking=no rocky@$host
 done
 ```
 
