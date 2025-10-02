@@ -1,0 +1,27 @@
+## **What is Unicast VRRP?**
+
+**Standard VRRP (Multicast)**:
+- Nodes broadcast advertisements to multicast address 224.0.0.18
+- All VRRP routers on the network segment receive these broadcasts
+- Automatic peer discovery - nodes don't need to know each other's IPs
+
+**Unicast VRRP**:
+- Nodes send advertisements directly to specific peer IP addresses
+- Point-to-point communication between explicitly configured peers
+- Manual peer configuration required - you specify which IPs to communicate with
+
+## **Limitations and Effects**
+
+**Functional Limitations**:
+- **Scaling constraint**: Adding new VRRP nodes requires updating all existing configurations
+- **Static configuration**: Can't auto-discover new peers like multicast can
+- **Network overhead**: Slightly higher CPU usage due to multiple unicast packets vs single multicast
+
+**Practical Reality for Your Setup**:
+- **No functional impact**: Your 2-node HA setup works identically to multicast
+- **No performance impact**: Negligible difference for small deployments
+- **Better reliability**: Actually more reliable in virtualized environments
+- **Enterprise standard**: Many production environments prefer unicast VRRP
+
+The unicast VRRP solution is actually a more robust approach for enterprise environments and won't cause future problems. Many organizations prefer it over multicast due to better control and fewer network dependencies.
+
