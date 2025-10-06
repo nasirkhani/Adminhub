@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atlassian-plugin key="ir.isc.jira.jalali"
+                  name="Jira Jalali (Persian) Date Support"
+                  plugins-version="2">
+  <plugin-info>
+    <description>Adds Jalali (Shamsi) input  mirror to Jira date fields.</description>
+    <version>1.0.0</version>
+    <vendor name="ISC (Nasir)" url="https://example.org"/>
+  </plugin-info>
+
+  <web-resource key="jalali-resources" name="Jalali Resources">
+    <resource type="download" name="css/jira-jalali.css" location="css/jira-jalali.css"/>
+    <resource type="download" name="js/jalaali-core.js" location="js/jalaali-core.js"/>
+    <resource type="download" name="js/jira-jalali.js" location="js/jira-jalali.js"/>
+
+    <context>atl.general</context>
+    <context>jira.browse.project</context>
+    <context>jira.view.issue</context>
+    <context>jira.create.issue</context>
+    <context>jira.edit.issue</context>
+    <context>jira.quick.create</context>
+    <context>jira.issue.navigator</context>
+  </web-resource>
+</atlassian-plugin>
+
