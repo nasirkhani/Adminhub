@@ -18,7 +18,7 @@ This guide solves the problem where NFS-mounted files show numeric UIDs (like "1
 ## **Problem Overview**
 
 ### **Symptoms:**
-- Files on NFS-mounted directories show numeric UIDs (e.g., `1001`) instead of usernames
+- Files on NFS-mounted directories show numeric UIDs (e.g., `1001`) instead of usernames.
 - Ownership changes back to numbers automatically after being set to username
 - Permission denied errors even though user should have access
 - Airflow (or other applications) fail to write logs or create files
