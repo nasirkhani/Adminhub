@@ -1,0 +1,14 @@
+Postgres commands:
+/var/lib/pgsql/<نسخه>/data/pg_hba.conf
+
+
+sudo -u postgres psql
+
+\l														#برای دیدن لیست دیتابیس ها
+\c														#نمایش دیتابیس فعلی
+\c <database_name>										#وصل شدن به یک دیتابیس
+\connect <database_name> <username>						#وصل شدن به یک دیتابیس
+\dt														#دیدن جداول دیتابیس
+\du														#لیست کاربران (Roleها)
+\du+													#لیست کاربران (Roleها)
+SHOW hba_file;											#پیدا کردن مسیر دقیق
