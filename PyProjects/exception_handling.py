@@ -26,28 +26,3 @@
 #             quit()
 #         else:
 #             print("Continuing...\n")
-
-
-
-while True:
-    try:
-        # تلاش برای باز کردن فایل
-        with open("something_random.txt", "r") as file:
-            content = file.read()
-            print("\n=== File Content ===")
-            print(content)
-        print("\nFile found successfully. Exiting program.")
-        break                   # اگر فایل پیدا شد از حلقه خارج شو
-    except FileNotFoundError:
-        print("File not found!")
-        
-        choice = input("For exit press q, for continue press c: ").lower()
-        
-        if choice == 'q':
-            print("Exiting...")
-            quit()              # یا exit()، بلافاصله از برنامه خارج می‌شود
-        elif choice == 'c':
-            print("Trying again...\n")
-            continue            # دوباره از اول حلقه اجرا شود
-        else:
-            print("Invalid input, please enter 'q' or 'c'.\n")
