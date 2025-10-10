@@ -16,9 +16,8 @@ def open_file():
         with open(CSV_FILE, "r", encoding="utf-8") as file:
             lines = csv.DictReader(file)
             for line in lines:
-                contacts.append(dict(line))  # ensure plain dict
+                contacts.append(dict(line))
     except FileNotFoundError:
-        # file not found -> start with empty contacts
         pass
 
 def view_contacts():
@@ -102,17 +101,14 @@ def delete_contact():
             print("Invalid selection.")
             return
     else:
-        # only one match -> remove it
         chosen_index = matches[0][0]
 
     removed = contacts.pop(chosen_index)
     save_contacts()
     print(f"Contact '{removed.get('Name')}' deleted successfully!")
 
-# load existing file
 open_file()
 
-# main loop
 while True:
     try:
         print("\nAddress Book Menu:")
