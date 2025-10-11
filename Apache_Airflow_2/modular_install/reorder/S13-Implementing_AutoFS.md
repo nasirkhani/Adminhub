@@ -1169,7 +1169,7 @@ echo "Result: SUCCESS/FAILURE" >> /var/log/failover-tests.log
 
 ---
 
-## Complete Deployment Example
+## Complete Deployment Example (DID NOT TESTED!)
 
 ### Full Deployment Script for One VM
 
