@@ -202,3 +202,154 @@ airflow celery inspect stats
 
 ---
 
+deep   
+
+
+
+## Airflow Concurrency Hierarchy
+
+Here's the hierarchy from **global** to **specific**:
+
+### 1. **`[core] parallelism`** (Global - in airflow.cfg)
+```ini
+[core]
+parallelism = 32
+```
+- **What it controls**: Maximum number of **total task instances** that can run across ALL DAGs in your entire Airflow deployment
+- **Scope**: Global across all DAGs, all workers
+- **Your setting**: 32 total tasks max across entire system
+
+### 2. **`[core] max_active_runs_per_dag`** (Per DAG)
+```ini
+[core]
+max_active_runs_per_dag = 16
+```
+- **What it controls**: Maximum number of **concurrent DAG runs** for a single DAG
+- **Scope**: Per DAG
+- **Your setting**: Each DAG can have max 16 simultaneous runs
+
+### 3. **`dag_concurrency`** (Per DAG Run - usually in DAG definition)
+```python
+@dag(
+    dag_id='my_dag',
+    max_active_tasks=8,  # This is dag_concurrency
+    concurrency=16,      # Alternative parameter
+)
+```
+- **What it controls**: Maximum number of **tasks** that can run simultaneously **within a single DAG run**
+- **Scope**: Per DAG run
+
+### 4. **`worker_concurrency`** (Per Worker - in airflow.cfg)
+```ini
+[celery]
+worker_concurrency = 4
+```
+- **What it controls**: Maximum number of **tasks** that a **single worker process** can execute simultaneously
+- **Scope**: Per worker process
+
+### 5. **`--concurrency`** (Per Worker - in service file)
+```bash
+airflow celery worker --concurrency 6
+```
+- **What it controls**: Same as `worker_concurrency` but **overrides** the config file setting
+- **Scope**: Per worker process
+
+## How They Interact - Practical Example
+
+With your current settings:
+- **Global**: `parallelism = 32` (max 32 tasks total)
+- **Per DAG run**: `max_active_runs_per_dag = 16` (max 16 DAG runs per DAG)
+- **Per worker**: `worker_concurrency = 4` (each worker runs 4 tasks)
+- **2 workers**: Total capacity = 4 × 2 = **8 concurrent tasks**
+
+## Visual Flow:
+
+```
+[Global Limit: 32 tasks]
+    ↓
+[Per DAG: max 16 runs of DAG-A]
+    ↓
+[Per DAG run: max X tasks in this run]
+    ↓
+[Per Worker: max 4 tasks on worker-1]
+```
+
+## Your Specific Questions Answered:
+
+### **"parallelism in the DAG"**
+This refers to **`max_active_tasks`** or **`concurrency`** in DAG definition:
+```python
+@dag(
+    max_active_tasks=8,  # Max tasks running concurrently in one DAG run
+    concurrency=16,      # Alternative way (same concept)
+)
+```
+
+### **"parallelism in the service file"**
+This is **`--concurrency`** which controls **per-worker task capacity**
+
+### **"parallelism In airflow.cfg"**
+- **`[core] parallelism`**: Global task limit
+- **`[celery] worker_concurrency`**: Per-worker task limit
+
+### **"parallelism in dag or task instance?"**
+- **DAG level**: Controls how many tasks run concurrently within the DAG
+- **Task instance**: There's no per-task parallelism setting. Each task instance runs as a separate process.
+
+## Your Current Bottleneck Analysis
+
+Your health monitor DAG has:
+- ~15+ tasks per run
+- Runs every minute
+- With your current limits:
+  - **Global**: 32 tasks max ✅ (plenty)
+  - **Workers**: 8 tasks total capacity (4 × 2 workers) ⚠️
+  - **Result**: Tasks queue up because workers can only handle 8 at once
+
+## Recommended Fix:
+
+### **Option 1: Increase Worker Concurrency** (Quickest)
+```ini
+# In airflow.cfg
+[celery]
+worker_concurrency = 8
+
+# Or in service file (overrides config)
+ExecStart=... --concurrency 8
+```
+**Result**: 8 × 2 workers = 16 concurrent tasks
+
+### **Option 2: Add DAG-Level Limits**
+```python
+@dag(
+    dag_id='ha_service_health_monitor',
+    max_active_tasks=6,  # Don't overwhelm the system
+    concurrency=10,
+)
+```
+
+### **Option 3: Balance All Settings**
+```ini
+# airflow.cfg
+[core]
+parallelism = 64                    # Increase global limit
+max_active_runs_per_dag = 8         # Reduce per-DAG runs
+
+[celery]
+worker_concurrency = 6              # Per-worker capacity
+```
+
+## Key Takeaway:
+
+The **immediate bottleneck** is your **worker concurrency (8 total)** vs your **DAG tasks (~15+)**. Increasing worker concurrency to 6-8 per worker will likely resolve your queued task issue.
+
+Start with:
+```bash
+# Update service file on both workers
+ExecStart=... --concurrency 6
+
+# Restart workers
+sudo systemctl restart airflow-worker
+```
+
+This should give you 12 total concurrent task capacity (6 × 2 workers), which should handle your health monitor DAG comfortably.
